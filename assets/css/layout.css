@@ -38,6 +38,7 @@ a:hover { text-decoration: underline; }
   display: flex; align-items: center; gap: var(--sp-3);
   padding: 0 var(--sp-4);
   background: color-mix(in srgb, var(--bg-elev) 88%, transparent);
+  -webkit-backdrop-filter: saturate(1.6) blur(12px);   /* iPadOS / iOS Safari 需要前缀 */
   backdrop-filter: saturate(1.6) blur(12px);
   border-bottom: 1px solid var(--border);
 }
@@ -71,7 +72,7 @@ a:hover { text-decoration: underline; }
 .text-btn {
   border: 0; background: none; cursor: pointer;
   color: var(--fg-faint); font-size: var(--fs-xs); font-family: inherit;
-  padding: 2px 4px; border-radius: 4px;
+  padding: 2px 4px; border-radius: 4px; white-space: nowrap;
 }
 .text-btn:hover { color: var(--accent); background: var(--bg-hover); }
 
@@ -245,17 +246,41 @@ a:hover { text-decoration: underline; }
   .only-mobile { display: grid; }
   .brand-text { display: none; }
 
+  /* 关着的抽屉必须**彻底**退出画面。
+     只用 transform 移出去是不够的：元素仍然 visible、仍可聚焦、
+     仍是一个活的合成层，它的 box-shadow（40px 模糊）会从左边缘渗回屏幕，
+     在平板上就表现为正文左侧那条重叠的暗带 / 重影。 */
   .sidebar {
-    position: fixed; top: var(--h-topbar); left: 0; width: 84vw; max-width: 320px;
-    transform: translateX(-102%); transition: transform .22s var(--ease);
-    box-shadow: var(--shadow-lg);
+    position: fixed; top: var(--h-topbar); left: 0;
+    width: min(84vw, 320px);
+    transform: translateX(-100%);
+    visibility: hidden;
+    pointer-events: none;
+    box-shadow: none;
+    transition: transform .22s var(--ease), visibility 0s linear .22s;
   }
-  body.nav-open .sidebar { transform: none; }
+  body.nav-open .sidebar {
+    transform: none;
+    visibility: visible;
+    pointer-events: auto;
+    box-shadow: var(--shadow-lg);
+    transition: transform .22s var(--ease), visibility 0s;
+  }
   body.nav-open .scrim {
     display: block; position: fixed; inset: var(--h-topbar) 0 0 0;
     background: rgba(0, 0, 0, .35); z-index: 35;
   }
+  /* 抽屉打开时锁住背景滚动，否则 iOS 上会滚穿到正文 */
+  body.nav-open { overflow: hidden; }
+
   .main { padding: var(--sp-4) var(--sp-4) 25vh; }
+}
+
+/* 更窄：顶栏元素开始互相挤，收紧留白 */
+@media (max-width: 560px) {
+  .topbar { gap: var(--sp-2); padding: 0 var(--sp-3); }
+  .search-wrap { margin: 0; }
+  .main { padding: var(--sp-3) var(--sp-3) 25vh; }
 }
 
 /* -------------------------------- 打印 -------------------------------- */

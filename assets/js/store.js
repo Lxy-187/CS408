@@ -117,6 +117,7 @@ window.KM = (function () {
   function audit() {
     const ids = new Map();   // path -> Set(id)
     const links = [];        // {from, to, at}
+    const raw = [];          // {path, near} —— 没被渲染成公式、以字面 $ 留在正文里的片段
     const box = document.createElement('div');
 
     state.pages.forEach(p => {
@@ -139,6 +140,16 @@ window.KM = (function () {
         if (a.classList.contains('anchor') || a.classList.contains('block-anchor')) return;
         links.push({ from: p.path, to, at });
       });
+
+      /* 漏渲染的公式：正文里不该再出现字面 $。
+         （KaTeX 已渲染的部分、以及代码块整块摘掉再看，避免误报。） */
+      const probe = box.cloneNode(true);
+      probe.querySelectorAll('.katex, .katex-display, code, pre').forEach(el => el.remove());
+      const text = probe.textContent;
+      let at = -1;
+      while ((at = text.indexOf('$', at + 1)) >= 0) {
+        raw.push({ path: p.path, near: text.slice(Math.max(0, at - 30), at + 50).replace(/\s+/g, ' ') });
+      }
     });
     ctx.path = '';
 
@@ -148,7 +159,15 @@ window.KM = (function () {
     console.log('[KM audit] 共 ' + links.length + ' 条页间链接，' +
                 (broken.length ? broken.length + ' 条有问题：' : '全部有效'));
     broken.forEach(l => console.error('  ✗ ' + l.from + ' → ' + l.to + (l.at ? '?at=' + l.at : '')));
-    return { total: links.length, broken };
+
+    if (raw.length) {
+      console.error('[KM audit] ' + raw.length + ' 处公式没渲染（正文里残留字面 $）：');
+      raw.forEach(r => console.error('  ✗ ' + r.path + ' … ' + r.near));
+    } else {
+      console.log('[KM audit] 公式渲染：没有残留的字面 $');
+    }
+
+    return { total: links.length, broken, raw };
   }
 
   return {

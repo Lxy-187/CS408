@@ -382,11 +382,20 @@ node --check content/co/02-data/float.js
 起服务后在浏览器控制台跑这两句：
 
 ```
-KM.audit()                                   // 断链、锚点不存在、重复 id
-document.querySelectorAll('.math-error')     // 公式渲染错误，应为空
+KM.audit()                                   // 断链、锚点不存在、重复 id、公式漏渲染
+document.querySelectorAll('.math-error')     // 当前页的公式语法错误，应为空
 ```
 
-`KM.audit()` 会遍历全站所有页面，返回 `{total, broken}`，`broken` 必须是空数组。
+`KM.audit()` 会遍历全站所有页面，返回 `{total, broken, raw}`：
+- `broken` 必须是空数组（断链 / 锚点不存在）；
+- `raw` 必须是空数组 —— 它列出**正文里残留的字面 `$`**，也就是没被解析成公式的片段。
+  这是一种==无声失败==：页面照常显示，只是把 LaTeX 源码当文本印出来，肉眼扫很容易漏。
+  （代码块与 `<pre>` 已排除，代码里出现 `$` 不会误报。）
+
+浏览器会缓存 `assets/js/*`，改过解析器后跑自检前先硬刷新，否则测的是旧代码。
+
+**发布前**：把 `index.html` 里所有 `?v=日期` 换成当天日期（同一天多次发布加后缀 a/b/c）。
+`content/` 与 `tools/` 下的文件由 `app.js` 读 `<meta name="km-version">` 自动带上，不用逐个改。
 
 本地预览（`.claude/launch.json` 已配好用 5181 端口，和数学站的 5180 错开；
 也可以直接双击 `index.html`）：

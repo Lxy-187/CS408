@@ -163,6 +163,37 @@ table.data td:first-child { font-weight: 600; color: var(--fg-strong); }
 }
 .katex-display > .katex { text-align: center; }
 
+/* --------------------- 可横向滚动的提示（窄屏关键） ---------------------
+   .scroll-x 由 app.js 在测出 scrollWidth > clientWidth 时打上，
+   .at-end 表示已经滑到最右。右缘的渐隐是唯一的"这里还有内容"的信号。
+   用 background-attachment: scroll，渐变钉在元素边框上，不随内容滚动。 */
+/* 选择器故意重复一次类名把特异性抬到 (0,2,0)：
+   .prose pre 之类的规则是 (0,1,1)，而且用了 background 简写
+   —— 简写会把 background-image 重置成 none，把渐隐吃掉。 */
+.scroll-x.scroll-x {
+  background-image: linear-gradient(to left, var(--fade-edge), transparent);
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: 30px 100%;
+  background-attachment: scroll;
+}
+.scroll-x.at-end.at-end { background-image: none; }
+
+@media (max-width: 900px) {
+  /* 窄屏把独立公式整体缩一档，多数式子就能完整放下，不必去滑 */
+  .prose .katex-display { font-size: .95em; }
+  .prose .katex { padding: 0 .05em; }
+}
+
+@media (max-width: 480px) {
+  .prose .katex-display { font-size: .88em; }
+  .katex { font-size: 1em; }
+  /* 表头的 nowrap 在手机上会把窄表撑宽，允许折行 */
+  .prose th, table.data th { white-space: normal; }
+  .prose th, table.data th,
+  .prose td, table.data td { padding: var(--sp-2); }
+}
+
 /* 带编号的公式 */
 .eq-block { position: relative; }
 .eq-block .eq-no {

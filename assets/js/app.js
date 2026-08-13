@@ -21,10 +21,14 @@
     return [...new Set(files)];
   }
 
+  /* 内容与工具文件是运行时注入的，同样会被浏览器长期缓存。
+     统一带上 index.html 里那个 km-version，改一处即可全站失效。 */
+  const VER = (document.querySelector('meta[name="km-version"]') || {}).content || '';
+
   function loadScript(src) {
     return new Promise(resolve => {
       const el = document.createElement('script');
-      el.src = src;
+      el.src = VER ? src + '?v=' + VER : src;
       el.onload = () => resolve(true);
       el.onerror = () => { console.error('[KM] 内容文件加载失败：' + src); resolve(false); };
       document.head.appendChild(el);
@@ -97,6 +101,7 @@
         KM.buildToc(page);
         bindPageTools();
         KM.mountTools(view);      // 交互工具要等 DOM 进文档之后才能挂
+        markScrollables();
       } else {
         view.innerHTML = renderMissing(path);
         document.title = '待补充 · ' + SITE;
@@ -260,6 +265,53 @@
     folds.forEach(d => { d.open = anyClosed; });
   }
 
+  /* 标记「装不下、需要横向滑动」的公式、表格与代码块。
+     窄屏上它们会被容器裁掉，而 overflow-x:auto 本身没有任何视觉提示，
+     看上去就像内容坏了。这里给它们打上 .scroll-x，由 CSS 在右缘画一道渐隐；
+     滑到底时加 .at-end 把渐隐撤掉。 */
+  const SCROLLABLE = '#view .katex-display, #view .table-wrap, #view pre';
+
+  /* 独立公式的自适应缩放：差一点就能放下的，缩到刚好放下，省掉一次横滑。
+     KaTeX 的宽度基本正比于 font-size，按宽度比例缩一次即可，不必迭代。
+     下限直接卡在像素上 —— 低于这个尺寸就看不清了，那还不如让它横滑。 */
+  const FIT_MIN_PX = 10;
+
+  function fitFormula(el) {
+    el.style.fontSize = '';                       // 先还原，避免多次调用累积缩小
+    const cw = el.clientWidth, sw = el.scrollWidth;
+    if (sw - cw <= 2) return;
+    const target = parseFloat(getComputedStyle(el).fontSize) * (cw / sw) * .98;
+    if (target < FIT_MIN_PX) return;              // 缩到能放下也读不了，交给横向滚动
+    el.style.fontSize = target + 'px';
+  }
+
+  function markScrollables() {
+    document.querySelectorAll('#view .katex-display').forEach(fitFormula);
+    document.querySelectorAll(SCROLLABLE).forEach(el => {
+      const over = el.scrollWidth - el.clientWidth > 2;
+      el.classList.toggle('scroll-x', over);
+      if (!over) { el.classList.remove('at-end'); return; }
+      const sync = () => el.classList.toggle(
+        'at-end', el.scrollLeft + el.clientWidth >= el.scrollWidth - 2);
+      sync();
+      if (!el.dataset.sxBound) {
+        el.dataset.sxBound = '1';
+        el.addEventListener('scroll', sync, { passive: true });
+      }
+    });
+  }
+
+  /* 折叠块展开后里面的公式才有尺寸，窗口变化 / 字体加载完也要重算 */
+  function watchScrollables() {
+    let t = 0;
+    const relayout = () => { clearTimeout(t); t = setTimeout(markScrollables, 120); };
+    window.addEventListener('resize', relayout, { passive: true });
+    document.addEventListener('toggle', e => {
+      if (e.target instanceof HTMLDetailsElement) relayout();
+    }, true);   // toggle 不冒泡，必须在捕获阶段听
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(relayout);
+  }
+
   /* ------------------------------ 主题 ------------------------------ */
   const THEMES = ['auto', 'light', 'dark'];
 
@@ -294,6 +346,7 @@
     initTheme();
 
     window.addEventListener('hashchange', route);
+    watchScrollables();
     route();
 
     // 顶栏按钮
