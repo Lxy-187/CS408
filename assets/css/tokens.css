@@ -1,0 +1,150 @@
+/* ==========================================================================
+   tokens.css —— 设计变量：颜色 / 字体 / 间距 / 明暗主题
+   语义色是整站「快速定位重点」的基础，块类型与颜色一一对应，不要随意改动含义：
+     key     蓝   核心结论、定理、公式
+     method  紫   方法论、解题套路
+     insight 绿   我自己的思路、洞察
+     warn    红   易错点、陷阱、边界条件
+     example 琥珀 例题
+   ========================================================================== */
+
+:root {
+  /* ---- 字体 ---- */
+  --font-sans: "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei UI",
+               "Microsoft YaHei", "Source Han Sans SC", "Noto Sans SC",
+               -apple-system, "Segoe UI", system-ui, sans-serif;
+  --font-serif: "Source Han Serif SC", "Noto Serif SC", "Songti SC",
+                "SimSun", Georgia, serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", "SF Mono", Consolas,
+               "Courier New", monospace;
+
+  --fs-xs: 12px;
+  --fs-sm: 13.5px;
+  --fs-base: 16px;
+  --fs-lg: 18px;
+  --fs-xl: 22px;
+  --fs-2xl: 28px;
+  --fs-3xl: 34px;
+
+  --lh-tight: 1.35;
+  --lh-base: 1.85;   /* 中文正文需要更松的行距，尤其是夹杂行内公式时 */
+
+  /* ---- 间距 ---- */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
+
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+
+  /* ---- 布局 ---- */
+  --w-sidebar: 288px;
+  --w-toc: 216px;
+  --w-content: 820px;
+  --h-topbar: 56px;
+
+  --ease: cubic-bezier(.2, .7, .3, 1);
+}
+
+/* ---------------------------------- 浅色 ---------------------------------- */
+:root, :root[data-theme="light"] {
+  --bg:         #fbfaf8;
+  --bg-elev:    #ffffff;
+  --bg-sunken:  #f2f0ec;
+  --bg-hover:   rgba(0, 0, 0, .045);
+  --bg-active:  rgba(13, 148, 136, .10);
+
+  --fg:         #1c1b19;
+  --fg-strong:  #000000;
+  --fg-muted:   #6b675f;
+  --fg-faint:   #99948a;
+
+  --border:     #e4e0d8;
+  --border-strong: #cec9be;
+
+  /* 主色用青绿，和数学站的蓝区分开：两个站并排开时一眼知道在哪边。
+     语义色（key/method/insight/warn/example）两站保持一致，约定是共用的。 */
+  --accent:     #0d9488;
+  --accent-fg:  #ffffff;
+
+  --c-key:      #1d4ed8;  --c-key-bg:      #eef3ff;  --c-key-br:      #c3d4fb;
+  --c-method:   #6d28d9;  --c-method-bg:   #f4efff;  --c-method-br:   #d9cbfa;
+  --c-insight:  #047857;  --c-insight-bg:  #e9f7f1;  --c-insight-br:  #b3e0cd;
+  --c-warn:     #be123c;  --c-warn-bg:     #fdeef1;  --c-warn-br:     #f6c7d1;
+  --c-example:  #b45309;  --c-example-bg:  #fdf5e7;  --c-example-br:  #ecd7ae;
+
+  --mark-bg:    #ffe98a;
+  --mark-fg:    #3d2c00;
+
+  --shadow-sm:  0 1px 2px rgba(30, 25, 15, .06);
+  --shadow:     0 2px 10px rgba(30, 25, 15, .07);
+  --shadow-lg:  0 12px 36px rgba(30, 25, 15, .14);
+}
+
+/* ---------------------------------- 深色 ---------------------------------- */
+:root[data-theme="dark"] {
+  --bg:         #14161a;
+  --bg-elev:    #1b1e24;
+  --bg-sunken:  #101216;
+  --bg-hover:   rgba(255, 255, 255, .06);
+  --bg-active:  rgba(45, 212, 191, .16);
+
+  --fg:         #dde1e7;
+  --fg-strong:  #ffffff;
+  --fg-muted:   #98a0ad;
+  --fg-faint:   #6b7482;
+
+  --border:     #2b3038;
+  --border-strong: #3d434e;
+
+  --accent:     #2dd4bf;
+  --accent-fg:  #04211e;
+
+  --c-key:      #7aa8ff;  --c-key-bg:      #17213a;  --c-key-br:      #2c4272;
+  --c-method:   #b48cff;  --c-method-bg:   #241d3a;  --c-method-br:   #443068;
+  --c-insight:  #4fd1a0;  --c-insight-bg:  #102a24;  --c-insight-br:  #1f5044;
+  --c-warn:     #ff8098;  --c-warn-bg:     #2e161e;  --c-warn-br:     #5c2938;
+  --c-example:  #e8ac54;  --c-example-bg:  #2a2115;  --c-example-br:  #574122;
+
+  --mark-bg:    #6b5410;
+  --mark-fg:    #ffe9a8;
+
+  --shadow-sm:  0 1px 2px rgba(0, 0, 0, .4);
+  --shadow:     0 2px 12px rgba(0, 0, 0, .45);
+  --shadow-lg:  0 14px 40px rgba(0, 0, 0, .6);
+}
+
+/* 跟随系统 */
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="auto"] {
+    --bg:         #14161a;
+    --bg-elev:    #1b1e24;
+    --bg-sunken:  #101216;
+    --bg-hover:   rgba(255, 255, 255, .06);
+    --bg-active:  rgba(45, 212, 191, .16);
+
+    --fg:         #dde1e7;
+    --fg-strong:  #ffffff;
+    --fg-muted:   #98a0ad;
+    --fg-faint:   #6b7482;
+
+    --border:     #2b3038;
+    --border-strong: #3d434e;
+
+    --accent:     #2dd4bf;
+    --accent-fg:  #04211e;
+
+    --c-key:      #7aa8ff;  --c-key-bg:      #17213a;  --c-key-br:      #2c4272;
+    --c-method:   #b48cff;  --c-method-bg:   #241d3a;  --c-method-br:   #443068;
+    --c-insight:  #4fd1a0;  --c-insight-bg:  #102a24;  --c-insight-br:  #1f5044;
+    --c-warn:     #ff8098;  --c-warn-bg:     #2e161e;  --c-warn-br:     #5c2938;
+    --c-example:  #e8ac54;  --c-example-bg:  #2a2115;  --c-example-br:  #574122;
+
+    --mark-bg:    #6b5410;
+    --mark-fg:    #ffe9a8;
+
+    --shadow-sm:  0 1px 2px rgba(0, 0, 0, .4);
+    --shadow:     0 2px 12px rgba(0, 0, 0, .45);
+    --shadow-lg:  0 14px 40px rgba(0, 0, 0, .6);
+  }
+}

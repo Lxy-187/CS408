@@ -1,0 +1,384 @@
+/* ==========================================================================
+   blocks.css —— 语义内容块
+   每种块 = 一种颜色 = 一种「这是什么」的信号，扫一眼就能定位。
+   ========================================================================== */
+
+/* -------------------------------- 深链锚点 --------------------------------
+   每个带 id 的块，标题右侧悬停时出现 #，点了就跳到 #/<页面>?at=<id>，
+   地址栏里那串就是可以直接分享/引用的直达链接。 */
+.block-anchor {
+  margin-left: auto; padding-left: var(--sp-2);
+  color: var(--fg-faint); font-weight: 400; font-size: .9em;
+  opacity: 0; transition: opacity .12s var(--ease);
+}
+.block-head:hover .block-anchor,
+.ex-head:hover .block-anchor,
+.compare-title:hover .block-anchor { opacity: 1; }
+.block-anchor:hover { color: var(--accent); text-decoration: none; }
+
+/* 所有可跳转目标都要留出顶栏的高度 */
+.block, .ex, .steps-wrap, .compare, .formulas-wrap,
+.prose h2, .prose h3, .prose h4, .sec-title {
+  scroll-margin-top: calc(var(--h-topbar) + 20px);
+}
+
+/* 落点闪烁：跳过来之后必须一眼看出是哪一块 */
+@keyframes km-flash {
+  0%   { box-shadow: 0 0 0 3px var(--accent), 0 0 0 10px color-mix(in srgb, var(--accent) 30%, transparent); }
+  70%  { box-shadow: 0 0 0 3px var(--accent), 0 0 0 10px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent, 0 0 0 0 transparent; }
+}
+.km-target {
+  animation: km-flash 1.3s var(--ease) 2;
+  border-radius: var(--radius);
+}
+@media (prefers-reduced-motion: reduce) {
+  .km-target { animation: none; box-shadow: 0 0 0 3px var(--accent); }
+}
+
+/* -------------------------------- 通用提示块 -------------------------------- */
+.block {
+  position: relative;
+  margin: var(--sp-4) 0;
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--bd, var(--border));
+  border-left: 3px solid var(--cl, var(--border-strong));
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--bg2, var(--bg-elev));
+  scroll-margin-top: calc(var(--h-topbar) + 16px);
+}
+
+.block-head {
+  display: flex; align-items: center; gap: var(--sp-2);
+  margin-bottom: var(--sp-2);
+  font-size: var(--fs-sm); font-weight: 700; letter-spacing: .02em;
+  color: var(--cl);
+}
+.block-head .b-icon { font-size: 14px; line-height: 1; }
+.block-head .b-kind {
+  font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+  padding: 1px 6px; border-radius: 3px;
+  background: color-mix(in srgb, var(--cl) 14%, transparent);
+}
+.block-head .b-title { color: var(--fg-strong); }
+
+.block > .prose > :last-child { margin-bottom: 0; }
+
+.block.key     { --cl: var(--c-key);     --bg2: var(--c-key-bg);     --bd: var(--c-key-br); }
+.block.method  { --cl: var(--c-method);  --bg2: var(--c-method-bg);  --bd: var(--c-method-br); }
+.block.insight { --cl: var(--c-insight); --bg2: var(--c-insight-bg); --bd: var(--c-insight-br); }
+.block.warn    { --cl: var(--c-warn);    --bg2: var(--c-warn-bg);    --bd: var(--c-warn-br); }
+.block.quote   { --cl: var(--fg-faint);  --bg2: var(--bg-sunken);    --bd: var(--border); }
+
+.block.quote .prose { color: var(--fg-muted); font-size: var(--fs-sm); }
+
+/* 「我的思路」额外强调：这是全站最该被一眼看到的东西 */
+.block.insight { box-shadow: var(--shadow-sm); }
+.block.insight .block-head .b-title { color: var(--c-insight); }
+
+/* -------------------------------- 步骤流程 -------------------------------- */
+.steps { counter-reset: step; margin: var(--sp-4) 0; }
+.steps .step {
+  position: relative;
+  padding: 0 0 var(--sp-4) var(--sp-6);
+  border-left: 2px solid var(--border);
+}
+.steps .step:last-child { border-left-color: transparent; padding-bottom: 0; }
+.steps .step::before {
+  counter-increment: step; content: counter(step);
+  position: absolute; left: -13px; top: 0;
+  width: 24px; height: 24px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--bg-elev); border: 2px solid var(--c-method);
+  color: var(--c-method); font-family: var(--font-mono);
+  font-size: var(--fs-xs); font-weight: 700; line-height: 1;
+}
+.steps .step-title {
+  font-weight: 700; color: var(--fg-strong);
+  margin-bottom: var(--sp-1); padding-top: 1px;
+}
+
+/* -------------------------------- 例题卡 -------------------------------- */
+.ex {
+  margin: var(--sp-5) 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-elev);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  scroll-margin-top: calc(var(--h-topbar) + 16px);
+}
+
+.ex-head {
+  display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap;
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--c-example-bg);
+  border-bottom: 1px solid var(--c-example-br);
+}
+.ex-badge {
+  font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: 700;
+  color: var(--accent-fg); background: var(--c-example);
+  padding: 2px 8px; border-radius: 4px; letter-spacing: .04em;
+}
+.ex-title { font-weight: 700; color: var(--fg-strong); font-size: var(--fs-sm); }
+.ex-src { font-size: var(--fs-xs); color: var(--fg-muted); }
+.ex-stars { margin-left: auto; color: var(--c-example); font-size: var(--fs-xs); letter-spacing: 1px; }
+
+.ex-body { padding: var(--sp-4); }
+
+/* 题面 */
+.ex-problem { font-size: var(--fs-base); }
+.ex-problem .prose > :last-child { margin-bottom: 0; }
+
+/* -------------------------------- 代码块 --------------------------------
+   408 专用块类型：带标题栏、语言标签，可被 ?at= 引用。 */
+.codeblock {
+  margin: var(--sp-4) 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-sunken);
+  overflow: hidden;
+  scroll-margin-top: calc(var(--h-topbar) + 20px);
+}
+.code-head {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+  font-size: var(--fs-sm);
+}
+.code-lang {
+  flex: 0 0 auto;
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--accent-fg); background: var(--accent);
+  padding: 2px 7px; border-radius: 3px;
+}
+.code-title { font-weight: 700; color: var(--fg-strong); }
+.code-note  { font-size: var(--fs-xs); color: var(--fg-muted); }
+.code-head .block-anchor { margin-left: auto; }
+.code-head:hover .block-anchor { opacity: 1; }
+
+.codeblock pre {
+  margin: 0; border: 0; border-radius: 0;
+  background: transparent;
+  padding: var(--sp-3) var(--sp-4);
+  font-size: var(--fs-sm); line-height: 1.65;
+  overflow-x: auto;
+}
+.codeblock pre code { white-space: pre; }
+
+/* 折叠段：思路 / 解答 / 点评 */
+.fold {
+  margin-top: var(--sp-3);
+  border: 1px solid var(--fd-br, var(--border));
+  border-radius: var(--radius);
+  background: var(--fd-bg, var(--bg-sunken));
+  overflow: hidden;
+}
+.fold > summary {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  cursor: pointer; user-select: none;
+  font-size: var(--fs-sm); font-weight: 700; color: var(--fd-cl, var(--fg-muted));
+  list-style: none;
+}
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary:hover { background: var(--bg-hover); }
+.fold > summary .caret {
+  width: 12px; font-size: 10px; color: currentColor;
+  transition: transform .15s var(--ease);
+}
+.fold[open] > summary .caret { transform: rotate(90deg); }
+.fold > summary .hint {
+  margin-left: auto; font-size: var(--fs-xs); font-weight: 400; color: var(--fg-faint);
+}
+.fold[open] > summary { border-bottom: 1px solid var(--fd-br, var(--border)); }
+.fold-body { padding: var(--sp-3); background: var(--bg-elev); }
+.fold-body > .prose > :last-child { margin-bottom: 0; }
+
+.fold.f-idea     { --fd-cl: var(--c-insight); --fd-br: var(--c-insight-br); --fd-bg: var(--c-insight-bg); }
+.fold.f-solution { --fd-cl: var(--c-key);     --fd-br: var(--c-key-br);     --fd-bg: var(--c-key-bg); }
+.fold.f-comment  { --fd-cl: var(--c-method);  --fd-br: var(--c-method-br);  --fd-bg: var(--c-method-bg); }
+.fold.f-plain    { --fd-cl: var(--fg-muted);  --fd-br: var(--border);       --fd-bg: var(--bg-sunken); }
+
+/* -------------------------------- 错题卡 --------------------------------
+   一张卡 = 一个丢过分的点。红色顶栏沿用「红 = 会丢分」的语义，
+   卡体保持中性，免得整页红成一片反而看不出重点。 */
+.card-item {
+  margin: var(--sp-4) 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-elev);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  scroll-margin-top: calc(var(--h-topbar) + 16px);
+}
+.card-head {
+  display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap;
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--c-warn-bg);
+  border-bottom: 1px solid var(--c-warn-br);
+}
+.card-tag {
+  font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: 700;
+  color: #fff; background: var(--c-warn);
+  padding: 2px 8px; border-radius: 4px; letter-spacing: .04em;
+}
+.card-where { font-size: var(--fs-xs); color: var(--c-warn); font-weight: 700; }
+.card-date  { margin-left: auto; font-size: var(--fs-xs); color: var(--fg-muted);
+              font-family: var(--font-mono); }
+.card-head .block-anchor { margin-left: 0; }
+.card-head:hover .block-anchor { opacity: 1; }
+
+.card-body { padding: var(--sp-3) var(--sp-4) var(--sp-4); }
+.card-q { font-weight: 600; color: var(--fg-strong); }
+.card-q .prose > :last-child { margin-bottom: 0; }
+
+.card-wrong {
+  position: relative;
+  margin-top: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border-left: 3px solid var(--c-warn);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--c-warn-bg);
+  font-size: var(--fs-sm);
+}
+.card-wrong .cw-tag {
+  display: inline-block; margin-right: var(--sp-2);
+  font-size: 10px; font-weight: 700; letter-spacing: .08em;
+  color: var(--c-warn); text-transform: uppercase;
+}
+.card-wrong .prose { display: inline; }
+.card-wrong .prose > p { display: inline; margin: 0; }
+.card-wrong .prose > :last-child { margin-bottom: 0; }
+
+/* 选择题的选项（错题卡与卡片练习共用） */
+.opts { margin: var(--sp-3) 0; display: grid; gap: var(--sp-2); }
+@media (min-width: 720px) { .opts { grid-template-columns: 1fr 1fr; } }
+.opt {
+  display: flex; align-items: baseline; gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--bg-sunken);
+  font-size: var(--fs-sm);
+}
+.opt-k {
+  flex: 0 0 auto; font-family: var(--font-mono); font-weight: 700;
+  color: var(--fg-muted);
+  width: 20px; text-align: center;
+}
+.opt-c { flex: 1 1 auto; min-width: 0; }
+.opt-mark { flex: 0 0 auto; font-size: var(--fs-xs); font-weight: 700; }
+.opt.ok {
+  border-color: var(--c-insight-br); background: var(--c-insight-bg);
+}
+.opt.ok .opt-k, .opt-mark.ok { color: var(--c-insight); }
+.opt.bad {
+  border-color: var(--c-warn-br); background: var(--c-warn-bg);
+}
+.opt.bad .opt-k, .opt-mark.bad { color: var(--c-warn); }
+.opt.bad .opt-c { text-decoration: line-through; text-decoration-color: var(--c-warn); }
+
+.card-foot { margin-top: var(--sp-3); font-size: var(--fs-xs); }
+.card-foot a { color: var(--accent); }
+
+.card-empty {
+  padding: var(--sp-5); text-align: center;
+  color: var(--fg-faint); font-size: var(--fs-sm);
+  border: 1px dashed var(--border-strong); border-radius: var(--radius);
+}
+
+/* -------------------------------- 错题卡汇总 -------------------------------- */
+.card-index { margin: var(--sp-4) 0; }
+.ci-group { margin-bottom: var(--sp-5); }
+.ci-label {
+  display: flex; align-items: center; gap: var(--sp-2);
+  margin-bottom: var(--sp-2);
+  font-size: var(--fs-sm); font-weight: 700; color: var(--fg-strong);
+}
+.ci-label::before { content: "◷"; color: var(--c-warn); font-size: 14px; }
+.ci-label .n {
+  font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: 400;
+  color: var(--fg-faint);
+  padding: 1px 7px; border-radius: 20px; background: var(--bg-sunken);
+}
+.ci-row {
+  display: flex; align-items: baseline; gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  margin-bottom: var(--sp-2);
+  color: inherit; background: var(--bg-elev);
+}
+.ci-row:hover { border-color: var(--c-warn); background: var(--bg-hover); text-decoration: none; }
+.ci-row .ci-date {
+  flex: 0 0 auto; font-family: var(--font-mono);
+  font-size: var(--fs-xs); color: var(--fg-faint);
+}
+.ci-row .ci-q { flex: 1 1 auto; min-width: 0; font-size: var(--fs-sm); }
+.ci-row .ci-where {
+  flex: 0 0 auto; font-size: var(--fs-xs); color: var(--c-warn);
+}
+@media (max-width: 640px) {
+  .ci-row { flex-wrap: wrap; gap: var(--sp-1) var(--sp-2); }
+  .ci-row .ci-q { flex-basis: 100%; order: 3; }
+}
+
+/* -------------------------------- 对比表 -------------------------------- */
+.compare { margin: var(--sp-4) 0; }
+.compare-title {
+  font-size: var(--fs-sm); font-weight: 700; color: var(--fg-strong);
+  margin-bottom: var(--sp-2);
+  display: flex; align-items: center; gap: var(--sp-2);
+}
+.compare-title::before {
+  content: "⇄"; color: var(--c-method); font-size: 14px;
+}
+
+/* -------------------------------- 公式速查 -------------------------------- */
+.formula-grid {
+  display: grid; gap: var(--sp-2);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  margin: var(--sp-4) 0;
+}
+.formula-item {
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--c-key-br); border-radius: var(--radius-sm);
+  background: var(--c-key-bg);
+}
+.formula-item .f-label {
+  font-size: var(--fs-xs); color: var(--c-key); font-weight: 700;
+  margin-bottom: 2px;
+}
+.formula-item .katex-display { margin: 0 !important; }
+
+/* -------------------------------- 页内工具条 -------------------------------- */
+.page-tools {
+  display: flex; align-items: center; gap: var(--sp-2);
+  margin: var(--sp-4) 0 var(--sp-5);
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px dashed var(--border-strong); border-radius: var(--radius);
+  font-size: var(--fs-xs); color: var(--fg-faint);
+}
+.page-tools button {
+  font-family: inherit; font-size: var(--fs-xs);
+  padding: 3px 10px; border-radius: 20px;
+  border: 1px solid var(--border-strong); background: var(--bg-elev);
+  color: var(--fg-muted); cursor: pointer;
+}
+.page-tools button:hover { border-color: var(--accent); color: var(--accent); }
+
+/* -------------------------------- 页脚导航 -------------------------------- */
+.page-nav {
+  display: flex; gap: var(--sp-3); margin-top: var(--sp-8);
+  padding-top: var(--sp-4); border-top: 1px solid var(--border);
+}
+.page-nav a {
+  flex: 1 1 0; padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  color: inherit;
+}
+.page-nav a:hover { border-color: var(--accent); text-decoration: none; background: var(--bg-hover); }
+.page-nav a small { display: block; font-size: var(--fs-xs); color: var(--fg-faint); }
+.page-nav a b { font-size: var(--fs-sm); color: var(--fg-strong); font-weight: 600; }
+.page-nav a.next { text-align: right; }

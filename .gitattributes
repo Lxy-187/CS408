@@ -1,0 +1,6 @@
+# 仓库里统一存 LF，检出到 Windows 时由 core.autocrlf 决定，
+# 免得每次 commit 都刷一屏换行符警告。
+* text=auto
+
+*.png  binary
+*.woff2 binary
