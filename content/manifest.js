@@ -150,8 +150,10 @@ KM.tree([
       {
         id: 'cpu', no: '5', title: '中央处理器',
         topics: [
-          { id: 'datapath',     title: '数据通路与单指令执行过程' },
-          { id: 'control',      title: '控制器（硬布线 / 微程序）' },
+          { id: 'datapath',     title: '数据通路与单指令执行过程',
+            file: 'content/co/05-cpu/datapath.js' },
+          { id: 'control',      title: '控制器（硬布线 / 微程序）',
+            file: 'content/co/05-cpu/control.js' },
           { id: 'pipeline',     title: '流水线：冒险与性能计算' },
           { id: 'exception',    title: '异常与中断机制',
             file: 'content/co/05-cpu/exception.js' },
