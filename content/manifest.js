@@ -154,7 +154,8 @@ KM.tree([
             file: 'content/co/05-cpu/datapath.js' },
           { id: 'control',      title: '控制器（硬布线 / 微程序）',
             file: 'content/co/05-cpu/control.js' },
-          { id: 'pipeline',     title: '流水线：冒险与性能计算' },
+          { id: 'pipeline',     title: '流水线：冒险与性能计算',
+            file: 'content/co/05-cpu/pipeline.js' },
           { id: 'exception',    title: '异常与中断机制',
             file: 'content/co/05-cpu/exception.js' },
         ],
@@ -162,8 +163,10 @@ KM.tree([
       {
         id: 'bus', no: '6', title: '总线',
         topics: [
-          { id: 'bus-basic',    title: '总线结构与性能指标' },
-          { id: 'bus-timing',   title: '总线仲裁与定时' },
+          { id: 'bus-basic',    title: '总线结构与性能指标',
+            file: 'content/co/06-bus/bus-basic.js' },
+          { id: 'bus-timing',   title: '总线仲裁与定时',
+            file: 'content/co/06-bus/bus-timing.js' },
         ],
       },
       {
