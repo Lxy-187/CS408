@@ -172,10 +172,12 @@ KM.tree([
       {
         id: 'io', no: '7', title: '输入输出系统',
         topics: [
-          { id: 'io-mode',      title: '程序查询 / 中断 / DMA 三种方式' },
+          { id: 'io-mode',      title: '程序查询 / 中断 / DMA 三种方式',
+            file: 'content/co/07-io/io-mode.js' },
           { id: 'interrupt',    title: '中断响应与处理流程',
             file: 'content/co/07-io/interrupt.js' },
-          { id: 'dma',          title: 'DMA 传送过程与周期挪用' },
+          { id: 'dma',          title: 'DMA 传送过程与周期挪用',
+            file: 'content/co/07-io/dma.js' },
         ],
       },
     ],
