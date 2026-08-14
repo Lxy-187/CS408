@@ -153,7 +153,8 @@ KM.tree([
           { id: 'datapath',     title: '数据通路与单指令执行过程' },
           { id: 'control',      title: '控制器（硬布线 / 微程序）' },
           { id: 'pipeline',     title: '流水线：冒险与性能计算' },
-          { id: 'exception',    title: '异常与中断机制' },
+          { id: 'exception',    title: '异常与中断机制',
+            file: 'content/co/05-cpu/exception.js' },
         ],
       },
       {
@@ -167,7 +168,8 @@ KM.tree([
         id: 'io', no: '7', title: '输入输出系统',
         topics: [
           { id: 'io-mode',      title: '程序查询 / 中断 / DMA 三种方式' },
-          { id: 'interrupt',    title: '中断响应与处理流程' },
+          { id: 'interrupt',    title: '中断响应与处理流程',
+            file: 'content/co/07-io/interrupt.js' },
           { id: 'dma',          title: 'DMA 传送过程与周期挪用' },
         ],
       },
