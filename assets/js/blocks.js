@@ -44,6 +44,7 @@
       case 'compare': return compare(b);
       case 'formulas':return formulas(b);
       case 'code':    return codeblock(b);
+      case 'diagram': return diagram(b);
       case 'tool':    return toolblock(b);
       case 'card':    return card(b);
       case 'cards':   return cardIndex(b);
@@ -89,6 +90,51 @@
     }
     return (!isFinite(min) || min === 0) ? lines.join('\n')
                                          : lines.map(l => l.slice(min)).join('\n');
+  }
+
+  /* ------------------------------ 示意图 ------------------------------
+     { t:'diagram', id:'cu-timing', title:'…', note:'…', caption:'…',
+       svg: String.raw`<svg class="dg" viewBox="0 0 720 330">…</svg>` }
+
+     图一律用内联 SVG 手写，颜色只用 diagram.css 里的语义类：
+       .bx.k 蓝=寄存器/状态   .bx.g 绿=组合逻辑/独立控制器
+       .bx.a 琥珀=控制信号     .bx.p 紫=CU   .bx.m 灰=空闲/等待
+       .bt 框内标题  .bs 框内小字  .cap 图内说明  .lb 连线标注
+       .ar 箭头线（.em 强调）  .wv 波形  .gd 虚线参考线
+     ==不要在 SVG 里写死颜色==，否则深色主题下会瞎。
+     正文用 caption（会进搜索），svg 字段不进搜索索引。 */
+  function diagram(b) {
+    ensureDefs();
+    const head = (b.title || b.note)
+      ? '<div class="dg-head">' +
+          '<span class="dg-tag">FIG</span>' +
+          '<span class="dg-title">' + inlineMd(b.title || '') + '</span>' +
+          (b.note ? '<span class="dg-note">' + inlineMd(b.note) + '</span>' : '') +
+          anchorLink(b.id) +
+        '</div>'
+      : '';
+    return '<figure class="dgbox"' + idAttr(b.id) + '>' + head +
+             '<div class="dg-scroll">' + String(b.svg || b.c || '') + '</div>' +
+             (b.caption ? '<figcaption>' + inlineMd(b.caption) + '</figcaption>' : '') +
+           '</figure>';
+  }
+
+  /* 箭头标记只在文档里放一份，所有图共用（同一文档内 url(#id) 跨 svg 有效）。
+     颜色交给 CSS，跟着主题走。 */
+  function ensureDefs() {
+    if (typeof document === 'undefined' || document.getElementById('dg-defs')) return;
+    const holder = document.createElement('div');
+    holder.innerHTML =
+      '<svg id="dg-defs" width="0" height="0" aria-hidden="true" ' +
+        'style="position:absolute;width:0;height:0;overflow:hidden"><defs>' +
+        '<marker id="dg-ar" viewBox="0 0 10 10" refX="9" refY="5" ' +
+          'markerWidth="6" markerHeight="6" orient="auto-start-reverse">' +
+          '<path d="M0,1 L9,5 L0,9 z"/></marker>' +
+        '<marker id="dg-are" viewBox="0 0 10 10" refX="9" refY="5" ' +
+          'markerWidth="6" markerHeight="6" orient="auto-start-reverse">' +
+          '<path d="M0,1 L9,5 L0,9 z"/></marker>' +
+      '</defs></svg>';
+    (document.body || document.documentElement).appendChild(holder.firstChild);
   }
 
   /* ------------------------------ 交互工具 ------------------------------

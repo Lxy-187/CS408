@@ -1,0 +1,113 @@
+/* ==========================================================================
+   diagram.css —— 示意图块（{ t:'diagram' }）
+   408 里很多结构和时序，画出来比写三段话有用。这里的图一律是「内联 SVG +
+   语义类名」：颜色全部走 CSS 变量，所以明暗主题都对，也能随窗口缩放。
+   —— 不要在 SVG 里写死颜色，否则深色主题下会瞎。
+   ========================================================================== */
+
+:root, :root[data-theme="light"] {
+  --d-blue:   #164a86;   /* 寄存器 / 状态：对应 key 蓝 */
+  --d-green:  #10553f;   /* 组合逻辑 / 独立控制器：对应 insight 绿 */
+  --d-amber:  #6b3d0b;   /* 控制信号 / 争用中的资源：对应 example 琥珀 */
+  --d-purple: #3b3392;   /* CU：对应 method 紫 */
+  --d-mute:   #3f434a;   /* 空闲 / 等待 */
+  --d-line:   #9a958c;   /* 连线与波形 */
+  --d-em:     #c2700f;   /* 需要强调的那一根线（如控制信号广播） */
+}
+
+:root[data-theme="dark"] {
+  --d-blue:   #1d5ea8;
+  --d-green:  #146b50;
+  --d-amber:  #8a5312;
+  --d-purple: #4a40b8;
+  --d-mute:   #474c55;
+  --d-line:   #767d88;
+  --d-em:     #d98b28;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="auto"] {
+    --d-blue:   #1d5ea8;
+    --d-green:  #146b50;
+    --d-amber:  #8a5312;
+    --d-purple: #4a40b8;
+    --d-mute:   #474c55;
+    --d-line:   #767d88;
+    --d-em:     #d98b28;
+  }
+}
+
+/* ------------------------------- 外框 ------------------------------- */
+.dgbox {
+  margin: var(--sp-5) 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+  overflow: hidden;
+}
+
+.dg-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-sunken);
+}
+
+.dg-tag {
+  font: 600 var(--fs-xs)/1 var(--font-mono);
+  letter-spacing: .08em;
+  color: var(--fg-faint);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  padding: 3px 6px;
+  flex: none;
+}
+
+.dg-title { font-weight: 600; font-size: var(--fs-sm); color: var(--fg-strong); }
+.dg-note  { font-size: var(--fs-xs); color: var(--fg-muted); }
+
+.dg-scroll { overflow-x: auto; padding: var(--sp-4); }
+
+.dgbox figcaption {
+  padding: 0 var(--sp-4) var(--sp-4);
+  font-size: var(--fs-sm);
+  color: var(--fg-muted);
+  line-height: 1.7;
+}
+
+/* 图本身：宽度自适应，但不许压到看不清，压不下就横向滚动 */
+.dg { display: block; width: 100%; min-width: 560px; height: auto; }
+.dg text { font-family: var(--font-sans); }
+
+/* ------------------------------- 零件 ------------------------------- */
+/* 圆角写在 SVG 的 rx 属性里（CSS 的 rx 几何属性老浏览器不认），这里只管填色 */
+.dg .bx.k { fill: var(--d-blue); }
+.dg .bx.g { fill: var(--d-green); }
+.dg .bx.a { fill: var(--d-amber); }
+.dg .bx.p { fill: var(--d-purple); }
+.dg .bx.m { fill: var(--d-mute); }
+
+.dg .bt { fill: #fff; font-size: 15px; font-weight: 700; }
+.dg .bs { fill: rgba(255,255,255,.74); font-size: 12px; }
+.dg .bt.sm { font-size: 13.5px; }
+
+.dg .cap { fill: var(--fg-muted); font-size: 13px; }
+.dg .lb  { fill: var(--fg-faint); font-size: 12px; }
+.dg .lb.em { fill: var(--d-em); }
+
+.dg .ar { fill: none; stroke: var(--d-line); stroke-width: 1.6; marker-end: url(#dg-ar); }
+.dg .ar.em { stroke: var(--d-em); marker-end: url(#dg-are); }
+.dg .ar.plain { marker-end: none; }
+.dg .wv { fill: none; stroke: var(--d-line); stroke-width: 1.6; }
+.dg .gd { stroke: var(--border-strong); stroke-width: 1; stroke-dasharray: 3 4; }
+
+/* 箭头（全局 defs，见 blocks.js 的 ensureDefs） */
+#dg-ar  path { fill: var(--d-line); }
+#dg-are path { fill: var(--d-em); }
+
+@media (max-width: 900px) {
+  .dg-scroll { padding: var(--sp-3); }
+}

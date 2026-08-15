@@ -97,7 +97,7 @@ window.KM = (function () {
     const parts = [];
     const push = v => { if (typeof v === 'string') parts.push(v); };
     push(b.title); push(b.c); push(b.problem); push(b.idea);
-    push(b.solution); push(b.comment); push(b.source);
+    push(b.solution); push(b.comment); push(b.source); push(b.caption);
     (b.items || []).forEach(it => { push(it.title); push(it.c); push(it); });
     (b.rows || []).forEach(r => (r || []).forEach(push));
     (b.cols || []).forEach(push);
@@ -144,7 +144,7 @@ window.KM = (function () {
       /* 漏渲染的公式：正文里不该再出现字面 $。
          （KaTeX 已渲染的部分、以及代码块整块摘掉再看，避免误报。） */
       const probe = box.cloneNode(true);
-      probe.querySelectorAll('.katex, .katex-display, code, pre').forEach(el => el.remove());
+      probe.querySelectorAll('.katex, .katex-display, code, pre, svg').forEach(el => el.remove());
       const text = probe.textContent;
       let at = -1;
       while ((at = text.indexOf('$', at + 1)) >= 0) {

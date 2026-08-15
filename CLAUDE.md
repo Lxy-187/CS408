@@ -14,7 +14,7 @@
 
 ```
 index.html                  页面外壳（新增内容页 / 新增工具都不需要改它）
-assets/css/                 tokens 变量 / layout 布局 / typography 排版 / blocks 块样式 / tools 工具样式
+assets/css/                 tokens 变量 / layout 布局 / typography 排版 / blocks 块样式 / diagram 示意图 / tools 工具样式
 assets/js/                  store 数据 / markdown 解析 / blocks 渲染 / tools 工具注册 / sidebar 导航 / search 搜索 / app 路由
 vendor/katex/               本地 KaTeX，保证离线和 file:// 直接双击可用
 content/manifest.js         ★ 知识树：学科 → 章 → 专题，全站唯一的结构定义
@@ -97,6 +97,7 @@ KM.page({
 | `quote` | 原始对话摘录、暂未消化的素材 | 灰框 | `title`, `c` |
 | `steps` | 有序流程（带圆圈数字时间轴） | 紫色节点 | `title`, `items: [{title, c}]` |
 | `code` | ★ **代码 / ASCII 图**（408 专用） | 深色卡片 + 语言标签 | `title`, `lang`, `note`, `c` |
+| `diagram` | ★ **示意图**（内联 SVG，随主题变色） | 图卡 + 图注 | `title`, `note`, `caption`, `svg` |
 | `example` | **例题卡** | 琥珀色卡片 | 见下 |
 | `compare` | 对比表 | 数据表 | `title`, `cols: []`, `rows: [[]]` |
 | `formulas` | 公式速查网格 | 蓝色格子 | `title`, `items: [{label, tex}]` |
@@ -127,6 +128,42 @@ KM.page({
   写成 `$\texttt{414}\cdots$`，别写 `$\texttt{414\cdots}$`。
 - 机器数、十六进制、C 代码片段统一用 `$\texttt{...}$`，
   正文里出现不了反引号（见第 5 节）。
+
+### `diagram` 块 —— 手写内联 SVG 的示意图
+
+ASCII 图能说清的照旧用 `code` 块。==只有当图里有"对齐关系、并行时间轴、反馈环、
+谁连到谁"这类空间信息时，才升级成 `diagram`==（时序波形、泳道图、框图）。
+
+```js
+{ t: 'diagram', id: 'cu-timing', title: '标题', note: '标题旁的一句话',
+  caption: String.raw`图下方的说明，支持 Markdown 与 $公式$，会进搜索`,
+  svg: String.raw`
+<svg class="dg" viewBox="0 0 720 340" role="img" aria-label="给读屏用的一句话">
+  <rect class="bx k" x="20" y="50" width="180" height="56" rx="8"/>
+  <text class="bt" x="110" y="78" text-anchor="middle" dominant-baseline="central">Reg1</text>
+  <path class="ar" d="M110,106 V136"/>
+</svg>` }
+```
+
+**类名就是全部的词汇**（定义在 `assets/css/diagram.css`）：
+
+| 类 | 用途 |
+|---|---|
+| `.bx.k` / `.bx.g` / `.bx.a` / `.bx.p` / `.bx.m` | 方块填色：蓝=寄存器/状态 · 绿=组合逻辑/独立控制器 · 琥珀=控制信号/占用中 · 紫=CU · 灰=空闲或等待 |
+| `.bt`（`.bt.sm`）/ `.bs` | 框内标题 / 框内小字，都是白字 |
+| `.cap` / `.lb`（`.lb.em`） | 图内说明 / 连线标注 |
+| `.ar`（`.ar.em` 强调、`.ar.plain` 无箭头）/ `.wv` / `.gd` | 箭头线 / 波形 / 虚线参考线 |
+
+**几条硬规矩**：
+
+- ==绝对不要在 SVG 里写死颜色==（`fill="#123456"`），深色主题下会瞎。只用上面的类。
+- 颜色语义和块的语义保持一致（紫=CU 是"发指令的那个"，绿=独立跑的状态机）。
+- `viewBox` 宽度用 **720**（正文宽度），需要更宽就到 740；图会等比缩放，
+  窄屏下最小 560px 后横向滚动。
+- 文字用 `text-anchor="middle"` + `dominant-baseline="central"` 手动定位，
+  ==SVG 里不能写 `$公式$`==（不过 KaTeX），要公式就写在 `caption` 里。
+- 图注写 `caption` 而不是塞进 SVG：`caption` 进搜索索引，SVG 不进。
+- 箭头标记是全站共用的一份 `defs`（`blocks.js` 里的 `ensureDefs`），不用自己写 `<marker>`。
 
 ### `tool` 块 —— 把交互工具嵌进知识页
 
