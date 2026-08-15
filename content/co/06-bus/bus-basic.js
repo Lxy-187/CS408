@@ -480,6 +480,8 @@ KM.page({
 
         反过来，[上一道题](#/co/bus/bus-basic?at=ex-burst)里突发传送省下的正是这里的地址开销 ——
         ==同一件事的正反两面==。
+
+        错点已记进错题本：[重叠是要题面给机制的](#/review/co/bus?at=c-bus-no-overlap)。
       `,
     },
 
