@@ -355,6 +355,8 @@ KM.tree([
             file: 'content/review/co-data.js' },
           { id: 'memory', title: '存储系统',
             file: 'content/review/co-memory.js' },
+          { id: 'cpu', title: '中央处理器',
+            file: 'content/review/co-cpu.js' },
         ],
       },
     ],
