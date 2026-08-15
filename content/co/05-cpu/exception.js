@@ -42,24 +42,37 @@ KM.page({
       **和程序查询方式对比一下就明白代价在哪：**
     ` },
 
-    { t: 'code', id: 'poll-vs-int', title: '查询 vs 中断：CPU 的时间去哪了', lang: '',
-      note: '灰色 = CPU 在干正事，井号 = CPU 在空转或做中断开销',
-      c: String.raw`
-        程序查询方式（CPU 死等）
-        CPU: ####################################----正事----####################
-             └──── 反复读状态寄存器，设备没好就再读一遍 ────┘
-        设备: ═══════════ 准备数据（很慢） ═══════════╡好了
-
-        中断方式（CPU 该干嘛干嘛）
-        CPU: ----------- 正 事 -----------┤##┤------ 正事 ------
-                                          └中断服务(短)
-        设备: ═══════════ 准备数据 ═══════════╡请求中断
-
-        DMA 方式（CPU 连搬运都不管）
-        CPU: ----------- 正 事 ------------------------┤#┤---- 正事 ----
-                                                       └一次中断:"整块搬完了"
-        设备: ═══ 准备 ═══╡──── DMA 控制器直接搬 N 个字节 ────╡
-      ` },
+    { t: 'diagram', id: 'poll-vs-int', title: '查询 vs 中断 vs DMA：CPU 的时间去哪了',
+      note: '紫 = CPU 在干正事，灰 = 空转，红 = 中断开销，绿/琥珀 = 设备侧',
+      caption: String.raw`==三种方式抢的都是"CPU 的时间"，区别只在被占走多少==：查询把整段等待时间都吃掉；中断只吃那一小段服务程序；DMA 连搬运都不吃，只在整块传完时打断一次。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 356" role="img" aria-label="程序查询、中断、DMA 三种方式下 CPU 时间的去向对比">
+  <text class="cap" x="0" y="14">① 程序查询：CPU 死等</text>
+  <text class="lb" x="0" y="44" dominant-baseline="central">CPU</text>
+  <g class="n m"><rect x="20" y="30" width="300" height="28" rx="4"/><text class="bt xs" x="170.0" y="44.0" text-anchor="middle" dominant-baseline="central">反复读状态寄存器（空转）</text></g>
+  <g class="n p"><rect x="324" y="30" width="150" height="28" rx="4"/><text class="bt xs" x="399.0" y="44.0" text-anchor="middle" dominant-baseline="central">正事</text></g>
+  <text class="lb" x="0" y="76" dominant-baseline="central">设备</text>
+  <g class="n g"><rect x="20" y="62" width="304" height="28" rx="4"/><text class="bt xs" x="172.0" y="76.0" text-anchor="middle" dominant-baseline="central">设备在准备数据（很慢）</text></g>
+  <text class="lb" x="20" y="110">设备没好就再读一遍，CPU 全程被绑住</text>
+  <text class="cap" x="0" y="128">② 中断：CPU 该干嘛干嘛</text>
+  <text class="lb" x="0" y="158" dominant-baseline="central">CPU</text>
+  <g class="n p"><rect x="20" y="144" width="300" height="28" rx="4"/><text class="bt xs" x="170.0" y="158.0" text-anchor="middle" dominant-baseline="central">正事</text></g>
+  <g class="n r"><rect x="324" y="144" width="60" height="28" rx="4"/><text class="bt xs" x="354.0" y="158.0" text-anchor="middle" dominant-baseline="central">中断服务</text></g>
+  <g class="n p"><rect x="388" y="144" width="200" height="28" rx="4"/><text class="bt xs" x="488.0" y="158.0" text-anchor="middle" dominant-baseline="central">正事</text></g>
+  <text class="lb" x="0" y="190" dominant-baseline="central">设备</text>
+  <g class="n g"><rect x="20" y="176" width="304" height="28" rx="4"/><text class="bt xs" x="172.0" y="190.0" text-anchor="middle" dominant-baseline="central">设备在准备数据</text></g>
+  <text class="lb" x="20" y="224">设备准备好才打断一次，开销只有那一小段</text>
+  <text class="cap" x="0" y="242">③ DMA：CPU 连搬运都不管</text>
+  <text class="lb" x="0" y="272" dominant-baseline="central">CPU</text>
+  <g class="n p"><rect x="20" y="258" width="470" height="28" rx="4"/><text class="bt xs" x="255.0" y="272.0" text-anchor="middle" dominant-baseline="central">正事</text></g>
+  <g class="n r"><rect x="494" y="258" width="76" height="28" rx="4"/><text class="bt xs" x="532.0" y="272.0" text-anchor="middle" dominant-baseline="central">一次中断</text></g>
+  <g class="n p"><rect x="576" y="258" width="100" height="28" rx="4"/><text class="bt xs" x="626.0" y="272.0" text-anchor="middle" dominant-baseline="central">正事</text></g>
+  <text class="lb" x="0" y="304" dominant-baseline="central">设备</text>
+  <g class="n g"><rect x="20" y="290" width="120" height="28" rx="4"/><text class="bt xs" x="80.0" y="304.0" text-anchor="middle" dominant-baseline="central">准备</text></g>
+  <g class="n a"><rect x="144" y="290" width="350" height="28" rx="4"/><text class="bt xs" x="319.0" y="304.0" text-anchor="middle" dominant-baseline="central">DMA 控制器直接搬 N 个字节</text></g>
+  <text class="lb" x="20" y="338">整块搬完才中断一次</text>
+</svg>
+` },
 
     { t: 'md', c: String.raw`
       三种方式的分水岭在**打断 CPU 的次数**：
@@ -71,22 +84,28 @@ KM.page({
     /* ================================================================== */
     { t: 'h', id: 'taxonomy', c: '二、内中断与外中断：先把树画对' },
 
-    { t: 'code', id: 'tree', title: '中断的完整分类（这张图能答一半的选择题）', lang: '',
-      c: String.raw`
-                            中断（广义，interrupt）
-                                    │
-                ┌───────────────────┴───────────────────┐
-          外中断（狭义中断）                        内中断（异常 exception）
-          与当前指令 无关                            由当前指令 引发
-          来自 CPU 外部                              来自 CPU 内部
-                │                                          │
-        ┌───────┴────────┐              ┌──────────────────┼──────────────────┐
-     可屏蔽            不可屏蔽        故障 Fault        自陷 Trap        终止 Abort
-     INTR 引脚         NMI 引脚        缺页 / 除零        系统调用          校验错
-     受 IF 位控制      必须响应        非法操作数         单步调试          硬件损坏
-     键盘/打印机/时钟  掉电/存储器校验错  ↑可恢复           ↑主动的           ↑不可恢复
-                                      返回 本条指令      返回 下一条        直接终止
-      ` },
+    { t: 'diagram', id: 'tree', title: '中断的完整分类（这张图能答一半的选择题）',
+      note: '第一刀切"与当前指令有没有关系"，第二刀才切具体类型',
+      caption: String.raw`最后一行==「返回哪里」是最常考的一格==：故障返回**本条**（重新执行），自陷返回**下一条**，终止**不返回**。详见[断点到底记哪一条](#/co/cpu/exception?at=return-table)。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 296" role="img" aria-label="中断的完整分类：外中断分可屏蔽与不可屏蔽，内中断分故障、自陷、终止">
+  <g class="n p"><rect x="250" y="14" width="200" height="40" rx="8"/><text class="bt sm" x="350.0" y="34.0" text-anchor="middle" dominant-baseline="central">中断（广义 interrupt）</text></g>
+  <path class="ar plain" d="M350,54 V70 H170 V88"/>
+  <path class="ar plain" d="M350,54 V70 H530 V88"/>
+  <g class="n k"><rect x="30" y="88" width="280" height="54" rx="8"/><text class="bt sm" x="170.0" y="105.0" text-anchor="middle" dominant-baseline="central">外中断（狭义中断）</text><text class="bs" x="170.0" y="125.0" text-anchor="middle" dominant-baseline="central">与当前指令无关 · 来自 CPU 外部</text></g>
+  <g class="n g"><rect x="390" y="88" width="280" height="54" rx="8"/><text class="bt sm" x="530.0" y="105.0" text-anchor="middle" dominant-baseline="central">内中断（异常 exception）</text><text class="bs" x="530.0" y="125.0" text-anchor="middle" dominant-baseline="central">由当前指令引发 · 来自 CPU 内部</text></g>
+  <path class="ar plain" d="M170,142 V158 H90 V174"/>
+  <path class="ar plain" d="M170,142 V158 H250 V174"/>
+  <g class="n k"><rect x="20" y="176" width="140" height="104" rx="8"/><text class="bt sm" x="90.0" y="194" text-anchor="middle" dominant-baseline="central">可屏蔽</text><text class="bs" x="90.0" y="218" text-anchor="middle" dominant-baseline="central">INTR 引脚</text><text class="bs" x="90.0" y="237" text-anchor="middle" dominant-baseline="central">受 IF 位控制</text><text class="bs" x="90.0" y="256" text-anchor="middle" dominant-baseline="central">键盘 / 时钟</text></g>
+  <g class="n k"><rect x="180" y="176" width="140" height="104" rx="8"/><text class="bt sm" x="250.0" y="194" text-anchor="middle" dominant-baseline="central">不可屏蔽</text><text class="bs" x="250.0" y="218" text-anchor="middle" dominant-baseline="central">NMI 引脚</text><text class="bs" x="250.0" y="237" text-anchor="middle" dominant-baseline="central">必须响应</text><text class="bs" x="250.0" y="256" text-anchor="middle" dominant-baseline="central">掉电 / 校验错</text></g>
+  <path class="ar plain" d="M530,142 V158 H400 V174"/>
+  <path class="ar plain" d="M530,142 V158 H530 V174"/>
+  <path class="ar plain" d="M530,142 V158 H645 V174"/>
+  <g class="n g"><rect x="340" y="176" width="120" height="104" rx="8"/><text class="bt sm" x="400.0" y="194" text-anchor="middle" dominant-baseline="central">故障 Fault</text><text class="bs" x="400.0" y="218" text-anchor="middle" dominant-baseline="central">缺页 / 除零</text><text class="bs" x="400.0" y="237" text-anchor="middle" dominant-baseline="central">可恢复</text><text class="bs" x="400.0" y="256" text-anchor="middle" dominant-baseline="central">返回本条指令</text></g>
+  <g class="n g"><rect x="470" y="176" width="120" height="104" rx="8"/><text class="bt sm" x="530.0" y="194" text-anchor="middle" dominant-baseline="central">自陷 Trap</text><text class="bs" x="530.0" y="218" text-anchor="middle" dominant-baseline="central">系统调用</text><text class="bs" x="530.0" y="237" text-anchor="middle" dominant-baseline="central">主动触发</text><text class="bs" x="530.0" y="256" text-anchor="middle" dominant-baseline="central">返回下一条</text></g>
+  <g class="n r"><rect x="600" y="176" width="90" height="104" rx="8"/><text class="bt sm" x="645.0" y="194" text-anchor="middle" dominant-baseline="central">终止 Abort</text><text class="bs" x="645.0" y="218" text-anchor="middle" dominant-baseline="central">校验错</text><text class="bs" x="645.0" y="237" text-anchor="middle" dominant-baseline="central">不可恢复</text><text class="bs" x="645.0" y="256" text-anchor="middle" dominant-baseline="central">不返回</text></g>
+</svg>
+` },
 
     { t: 'key', id: 'in-vs-out', title: '内中断与外中断的四条硬差别', c: String.raw`
       | | 外中断（狭义"中断"） | 内中断（异常） |
@@ -173,18 +192,26 @@ KM.page({
       而是在每条指令的最后固定安排一次 —— 这一段叫 **中断周期**。
     ` },
 
-    { t: 'code', id: 'cpu-cycle', title: 'CPU 的四种工作周期：中断周期挂在最后', lang: '',
-      c: String.raw`
-        ┌──────┐   ┌──────┐   ┌──────┐   ┌────────┐
-        │取指周期│──▶│间址周期│──▶│执行周期│──▶│ 中断周期 │──┐
-        └──────┘   └──────┘   └──────┘   └────────┘  │
-            ▲        (间接寻址              (查询有无      │
-            │         才有)                  中断请求)     │
-            └──────────────────────────────────────────┘
-
-        四个触发器标识当前处于哪个周期：FE(取指) IND(间址) EX(执行) INT(中断)
-        没有中断请求时，INT 周期直接跳过，从 EX 回到 FE。
-      ` },
+    { t: 'diagram', id: 'cpu-cycle', title: 'CPU 的四种工作周期：中断周期挂在最后',
+      note: '中断查询固定安排在一条指令执行完之后',
+      caption: String.raw`==中断周期挂在最后不是随便安排的==：只有在一条指令彻底做完时，机器状态才是"干净"的，此刻保存断点才有意义。为什么必须等指令结束，见[这一块](#/co/cpu/exception?at=why-instruction-end)。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 246" role="img" aria-label="取指、间址、执行、中断四种工作周期的循环">
+  <g class="n k"><rect x="30" y="40" width="140" height="56" rx="8"/><text class="bt sm" x="100.0" y="58.0" text-anchor="middle" dominant-baseline="central">取指周期</text><text class="bs" x="100.0" y="78.0" text-anchor="middle" dominant-baseline="central">FE</text></g>
+  <g class="n k"><rect x="210" y="40" width="140" height="56" rx="8"/><text class="bt sm" x="280.0" y="58.0" text-anchor="middle" dominant-baseline="central">间址周期</text><text class="bs" x="280.0" y="78.0" text-anchor="middle" dominant-baseline="central">IND</text></g>
+  <path class="ar" d="M174,68.0 H206"/>
+  <g class="n k"><rect x="390" y="40" width="140" height="56" rx="8"/><text class="bt sm" x="460.0" y="58.0" text-anchor="middle" dominant-baseline="central">执行周期</text><text class="bs" x="460.0" y="78.0" text-anchor="middle" dominant-baseline="central">EX</text></g>
+  <path class="ar" d="M354,68.0 H386"/>
+  <g class="n p"><rect x="570" y="40" width="140" height="56" rx="8"/><text class="bt sm" x="640.0" y="58.0" text-anchor="middle" dominant-baseline="central">中断周期</text><text class="bs" x="640.0" y="78.0" text-anchor="middle" dominant-baseline="central">INT</text></g>
+  <path class="ar" d="M534,68.0 H566"/>
+  <path class="ar" d="M655,68 V120 H100 V100"/>
+  <text class="lb" x="380" y="138" text-anchor="middle">一条指令做完，回到取指</text>
+  <text class="lb" x="210" y="116" text-anchor="middle">只有间接寻址才有</text>
+  <text class="lb" x="490" y="116" text-anchor="middle">查询有无中断请求</text>
+  <text class="cap" x="0" y="176">四个触发器标识当前处在哪个周期：FE / IND / EX / INT</text>
+  <g class="n g"><rect x="20" y="188" width="656" height="46" rx="8"/><text class="bt sm" x="348.0" y="201.0" text-anchor="middle" dominant-baseline="central">没有中断请求时，INT 周期直接跳过</text><text class="bs" x="348.0" y="221.0" text-anchor="middle" dominant-baseline="central">从 EX 直接回到 FE —— 所以"每条指令都有中断周期"这句话是错的</text></g>
+</svg>
+` },
 
     { t: 'key', id: 'why-instruction-end', title: '★ 为什么必须等指令执行完', c: String.raw`
       三个理由，答简答题按这个顺序写：
@@ -260,23 +287,29 @@ KM.page({
           详见 [向量中断那三个词](#/co/io/interrupt?at=vector-three-words)。` },
     ] },
 
-    { t: 'code', id: 'int-cycle-micro', title: '中断周期的微操作序列（硬布线 / 微程序大题会考）', lang: '',
-      note: '左边是断点存主存 0 号单元的经典写法，右边是断点压栈的现代写法',
-      c: String.raw`
-        存入主存固定单元                      压入堆栈
-        ─────────────────                    ─────────────────
-        (1)  0 → MAR                         (1)  (SP)-1 → SP
-        (2)  1 → W                                (SP)  → MAR
-        (3)  (PC) → MDR                      (2)  1 → W
-        (4)  (MDR) → M(MAR)                  (3)  (PC) → MDR
-        (5)  向量地址形成部件 → PC             (4)  (MDR) → M(MAR)
-        (6)  0 → EINT                        (5)  向量地址形成部件 → PC
-                                             (6)  0 → EINT
-
-        看清楚这六步里有什么、没有什么：
-          有：写主存（存断点）、改 PC（换入口）、清 EINT（关中断）
-          没有：任何通用寄存器的保存    ← 那是软件的事
-      ` },
+    { t: 'diagram', id: 'int-cycle-micro', title: '中断周期的微操作序列（硬布线 / 微程序大题会考）',
+      note: '左边是断点存主存固定单元，右边是断点压栈',
+      caption: String.raw`两种写法的差别只在**断点存哪儿**，==后四步一模一样==。考试时盯住最后两行：==送向量地址 + 关中断，这两件事一定由硬件做==，通用寄存器的保存则一定是软件做的。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 302" role="img" aria-label="中断周期的六步微操作：存断点、送向量地址、关中断">
+  <text class="cap" x="20" y="14">① 存入主存固定单元（经典写法）</text>
+  <text class="cap" x="372" y="14">② 压入堆栈（现代写法）</text>
+  <g class="n a"><rect x="20" y="26" width="316" height="28" rx="4"/><text class="bt xs" x="178.0" y="40.0" text-anchor="middle" dominant-baseline="central">(1) 0 → MAR</text></g>
+  <g class="n a"><rect x="20" y="60" width="316" height="28" rx="4"/><text class="bt xs" x="178.0" y="74.0" text-anchor="middle" dominant-baseline="central">(2) 1 → W</text></g>
+  <g class="n a"><rect x="20" y="94" width="316" height="28" rx="4"/><text class="bt xs" x="178.0" y="108.0" text-anchor="middle" dominant-baseline="central">(3) (PC) → MDR</text></g>
+  <g class="n a"><rect x="20" y="128" width="316" height="28" rx="4"/><text class="bt xs" x="178.0" y="142.0" text-anchor="middle" dominant-baseline="central">(4) (MDR) → M(MAR)</text></g>
+  <g class="n a"><rect x="20" y="162" width="316" height="28" rx="4"/><text class="bt xs" x="178.0" y="176.0" text-anchor="middle" dominant-baseline="central">(5) 向量地址形成部件 → PC</text></g>
+  <g class="n a"><rect x="20" y="196" width="316" height="28" rx="4"/><text class="bt xs" x="178.0" y="210.0" text-anchor="middle" dominant-baseline="central">(6) 0 → EINT</text></g>
+  <g class="n a"><rect x="360" y="26" width="316" height="28" rx="4"/><text class="bt xs" x="518.0" y="40.0" text-anchor="middle" dominant-baseline="central">(1) (SP)-1 → SP，(SP) → MAR</text></g>
+  <g class="n a"><rect x="360" y="60" width="316" height="28" rx="4"/><text class="bt xs" x="518.0" y="74.0" text-anchor="middle" dominant-baseline="central">(2) 1 → W</text></g>
+  <g class="n a"><rect x="360" y="94" width="316" height="28" rx="4"/><text class="bt xs" x="518.0" y="108.0" text-anchor="middle" dominant-baseline="central">(3) (PC) → MDR</text></g>
+  <g class="n a"><rect x="360" y="128" width="316" height="28" rx="4"/><text class="bt xs" x="518.0" y="142.0" text-anchor="middle" dominant-baseline="central">(4) (MDR) → M(MAR)</text></g>
+  <g class="n a"><rect x="360" y="162" width="316" height="28" rx="4"/><text class="bt xs" x="518.0" y="176.0" text-anchor="middle" dominant-baseline="central">(5) 向量地址形成部件 → PC</text></g>
+  <g class="n a"><rect x="360" y="196" width="316" height="28" rx="4"/><text class="bt xs" x="518.0" y="210.0" text-anchor="middle" dominant-baseline="central">(6) 0 → EINT</text></g>
+  <g class="n g"><rect x="20" y="244" width="320" height="46" rx="8"/><text class="bt sm" x="180.0" y="257.0" text-anchor="middle" dominant-baseline="central">有：写主存 · 改 PC · 清 EINT</text><text class="bs" x="180.0" y="277.0" text-anchor="middle" dominant-baseline="central">存断点、换入口、关中断</text></g>
+  <g class="n r"><rect x="360" y="244" width="316" height="46" rx="8"/><text class="bt sm" x="518.0" y="257.0" text-anchor="middle" dominant-baseline="central">没有：任何通用寄存器的保存</text><text class="bs" x="518.0" y="277.0" text-anchor="middle" dominant-baseline="central">那是软件（中断服务程序）的事</text></g>
+</svg>
+` },
 
     { t: 'md', c: String.raw`
       把这六步和其他三个机器周期摆在一起看会更清楚：
@@ -370,20 +403,50 @@ KM.page({
       也是很多人复习时的盲区。
     ` },
 
-    { t: 'code', id: 'pipeline-exception', title: '五级流水线中，第 3 条指令在 MEM 段缺页', lang: '',
-      c: String.raw`
-        时间 →        1     2     3     4     5     6     7
-        I1(已提交)   IF    ID    EX   MEM    WB
-        I2           　    IF    ID    EX   MEM    WB     ← 必须让它完成
-        I3(出异常)   　    　    IF    ID    EX   MEM ✗   ← 缺页在这里发现
-        I4           　    　    　    IF    ID    EX     ← 必须作废
-        I5           　    　    　    　    IF    ID     ← 必须作废
-
-        精确异常的要求：
-          I1、I2  ── 异常点之前的指令，必须全部正常完成
-          I3      ── 出异常的指令本身，不能留下任何副作用
-          I4、I5  ── 之后的指令，已经进了流水线，必须全部作废（flush）
-      ` },
+    { t: 'diagram', id: 'pipeline-exception', title: '五级流水线中，第 3 条指令在 MEM 段缺页',
+      note: '红格 = 必须作废；异常之前的指令一条都不能丢',
+      caption: String.raw`==难点在于"异常被发现时，后面的指令已经跑了好几段"==。硬件必须把时间倒回到 $\texttt{I3}$ 之前的那个干净状态，这就是[精确异常](#/co/cpu/exception?at=precise-def)要付的代价。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 254" role="img" aria-label="五级流水线中第三条指令在 MEM 段缺页时，前后指令的处理">
+  <text class="lb" x="0" y="16">时间 →</text>
+  <text class="lb" x="133.0" y="16" text-anchor="middle">1</text>
+  <text class="lb" x="207.0" y="16" text-anchor="middle">2</text>
+  <text class="lb" x="281.0" y="16" text-anchor="middle">3</text>
+  <text class="lb" x="355.0" y="16" text-anchor="middle">4</text>
+  <text class="lb" x="429.0" y="16" text-anchor="middle">5</text>
+  <text class="lb" x="503.0" y="16" text-anchor="middle">6</text>
+  <text class="lb" x="577.0" y="16" text-anchor="middle">7</text>
+  <text class="lb" x="88" y="39" text-anchor="end" dominant-baseline="central">I1 已提交</text>
+  <g class="n k"><rect x="96" y="26" width="71" height="26" rx="4"/><text class="bt xs" x="131.5" y="39.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n g"><rect x="170" y="26" width="71" height="26" rx="4"/><text class="bt xs" x="205.5" y="39.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <g class="n a"><rect x="244" y="26" width="71" height="26" rx="4"/><text class="bt xs" x="279.5" y="39.0" text-anchor="middle" dominant-baseline="central">EX</text></g>
+  <g class="n p"><rect x="318" y="26" width="71" height="26" rx="4"/><text class="bt xs" x="353.5" y="39.0" text-anchor="middle" dominant-baseline="central">MEM</text></g>
+  <g class="n m"><rect x="392" y="26" width="71" height="26" rx="4"/><text class="bt xs" x="427.5" y="39.0" text-anchor="middle" dominant-baseline="central">WB</text></g>
+  <text class="lb" x="88" y="71" text-anchor="end" dominant-baseline="central">I2</text>
+  <g class="n k"><rect x="170" y="58" width="71" height="26" rx="4"/><text class="bt xs" x="205.5" y="71.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n g"><rect x="244" y="58" width="71" height="26" rx="4"/><text class="bt xs" x="279.5" y="71.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <g class="n a"><rect x="318" y="58" width="71" height="26" rx="4"/><text class="bt xs" x="353.5" y="71.0" text-anchor="middle" dominant-baseline="central">EX</text></g>
+  <g class="n p"><rect x="392" y="58" width="71" height="26" rx="4"/><text class="bt xs" x="427.5" y="71.0" text-anchor="middle" dominant-baseline="central">MEM</text></g>
+  <g class="n m"><rect x="466" y="58" width="71" height="26" rx="4"/><text class="bt xs" x="501.5" y="71.0" text-anchor="middle" dominant-baseline="central">WB</text></g>
+  <text class="lb" x="546" y="75">必须让它完成</text>
+  <text class="lb" x="88" y="103" text-anchor="end" dominant-baseline="central">I3 出异常</text>
+  <g class="n k"><rect x="244" y="90" width="71" height="26" rx="4"/><text class="bt xs" x="279.5" y="103.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n g"><rect x="318" y="90" width="71" height="26" rx="4"/><text class="bt xs" x="353.5" y="103.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <g class="n a"><rect x="392" y="90" width="71" height="26" rx="4"/><text class="bt xs" x="427.5" y="103.0" text-anchor="middle" dominant-baseline="central">EX</text></g>
+  <g class="n r"><rect x="466" y="90" width="71" height="26" rx="4"/><text class="bt xs" x="501.5" y="103.0" text-anchor="middle" dominant-baseline="central">MEM ✗</text></g>
+  <text class="lb" x="546" y="107">缺页在这里发现</text>
+  <text class="lb" x="88" y="135" text-anchor="end" dominant-baseline="central">I4</text>
+  <g class="n r"><rect x="318" y="122" width="71" height="26" rx="4"/><text class="bt xs" x="353.5" y="135.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n r"><rect x="392" y="122" width="71" height="26" rx="4"/><text class="bt xs" x="427.5" y="135.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <g class="n r"><rect x="466" y="122" width="71" height="26" rx="4"/><text class="bt xs" x="501.5" y="135.0" text-anchor="middle" dominant-baseline="central">EX</text></g>
+  <text class="lb" x="546" y="139">必须作废</text>
+  <text class="lb" x="88" y="167" text-anchor="end" dominant-baseline="central">I5</text>
+  <g class="n r"><rect x="392" y="154" width="71" height="26" rx="4"/><text class="bt xs" x="427.5" y="167.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n r"><rect x="466" y="154" width="71" height="26" rx="4"/><text class="bt xs" x="501.5" y="167.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <text class="lb" x="546" y="171">必须作废</text>
+  <g class="n g"><rect x="20" y="196" width="656" height="46" rx="8"/><text class="bt sm" x="348.0" y="209.0" text-anchor="middle" dominant-baseline="central">精确异常的三条要求</text><text class="bs" x="348.0" y="229.0" text-anchor="middle" dominant-baseline="central">异常点之前的全部完成 · 出异常那条不留副作用 · 之后的全部作废（flush）</text></g>
+</svg>
+` },
 
     { t: 'key', id: 'precise-def', title: '精确异常与不精确异常', c: String.raw`
       **精确异常**：异常发生时，能保证==异常之前的所有指令都已完整执行完毕，

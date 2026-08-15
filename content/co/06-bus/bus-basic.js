@@ -16,30 +16,40 @@ KM.page({
     /* ================================================================== */
     { t: 'h', id: 'why', c: '一、为什么需要总线' },
 
-    { t: 'code', id: 'point-to-point', title: '不用总线会怎样：连线数按平方爆炸', lang: '',
-      c: String.raw`
-        分散连接（每两个部件之间拉一条专线）
-        ─────────────────────────────────────
-             CPU ──────── 主存
-              │  ╲      ╱  │
-              │    ╲  ╱    │
-              │     ╳      │
-              │    ╱  ╲    │
-             磁盘 ──────── 打印机
-
-        n 个部件要 C(n,2) = n(n-1)/2 条连线：
-             n = 4   →   6 条
-             n = 10  →  45 条
-             n = 20  → 190 条        ← 按 n² 增长，很快就走不通
-
-        总线连接（所有部件挂在同一组公共线上）
-        ─────────────────────────────────────
-          CPU     主存     磁盘    打印机
-           │       │       │       │
-        ═══╧═══════╧═══════╧═══════╧═══  总线
-
-        n 个部件只要 1 组线，增加一个部件只是【多挂一个】。
-      ` },
+    { t: 'diagram', id: 'point-to-point', title: '不用总线会怎样：连线数按平方爆炸',
+      note: '左边四个部件已经六条线，二十个就是一百九十条',
+      caption: String.raw`==总线的本质是"用分时共享换掉连线数量"==：把 $O(n^2)$ 的专线压成一组公共线，代价是同一时刻只能有一对部件通信。这个代价后来又派生出了[仲裁](#/co/bus/bus-timing?at=arbitration)这个新问题。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 340" role="img" aria-label="分散连接的连线数按平方增长，总线把它压成一组公共线">
+  <text class="cap" x="0" y="14">① 分散连接：每两个部件之间拉一条专线</text>
+  <path class="ar plain" d="M140,56 L340,56"/>
+  <path class="ar plain" d="M140,56 L140,156"/>
+  <path class="ar plain" d="M140,56 L340,156"/>
+  <path class="ar plain" d="M340,56 L140,156"/>
+  <path class="ar plain" d="M340,56 L340,156"/>
+  <path class="ar plain" d="M140,156 L340,156"/>
+  <g class="n k"><rect x="90" y="36" width="100" height="40" rx="8"/><text class="bt sm" x="140.0" y="56.0" text-anchor="middle" dominant-baseline="central">CPU</text></g>
+  <g class="n k"><rect x="290" y="36" width="100" height="40" rx="8"/><text class="bt sm" x="340.0" y="56.0" text-anchor="middle" dominant-baseline="central">主存</text></g>
+  <g class="n k"><rect x="90" y="136" width="100" height="40" rx="8"/><text class="bt sm" x="140.0" y="156.0" text-anchor="middle" dominant-baseline="central">磁盘</text></g>
+  <g class="n k"><rect x="290" y="136" width="100" height="40" rx="8"/><text class="bt sm" x="340.0" y="156.0" text-anchor="middle" dominant-baseline="central">打印机</text></g>
+  <text class="lb" x="420" y="60">n 个部件要 C(n,2) = n(n-1)/2 条线</text>
+  <text class="lb mono" x="420" y="86">n = 4　　→　　6 条</text>
+  <text class="lb mono" x="420" y="106">n = 10　→　45 条</text>
+  <text class="lb mono" x="420" y="126">n = 20　→　190 条</text>
+  <text class="lb" x="420" y="152">按 n² 增长，很快就走不通</text>
+  <text class="cap" x="0" y="210">② 总线连接：所有部件挂在同一组公共线上</text>
+  <g class="n k"><rect x="40" y="224" width="108" height="38" rx="8"/><text class="bt sm" x="94.0" y="243.0" text-anchor="middle" dominant-baseline="central">CPU</text></g>
+  <path class="ar plain" d="M94,262 V286"/>
+  <g class="n k"><rect x="170" y="224" width="108" height="38" rx="8"/><text class="bt sm" x="224.0" y="243.0" text-anchor="middle" dominant-baseline="central">主存</text></g>
+  <path class="ar plain" d="M224,262 V286"/>
+  <g class="n k"><rect x="300" y="224" width="108" height="38" rx="8"/><text class="bt sm" x="354.0" y="243.0" text-anchor="middle" dominant-baseline="central">磁盘</text></g>
+  <path class="ar plain" d="M354,262 V286"/>
+  <g class="n k"><rect x="430" y="224" width="108" height="38" rx="8"/><text class="bt sm" x="484.0" y="243.0" text-anchor="middle" dominant-baseline="central">打印机</text></g>
+  <path class="ar plain" d="M484,262 V286"/>
+  <g class="n g"><rect x="20" y="286" width="656" height="24" rx="6"/><text class="bt sm" x="348.0" y="298.0" text-anchor="middle" dominant-baseline="central">一组公共总线</text></g>
+  <text class="lb" x="20" y="330">增加一个部件只是"多挂一个"，连线数不变</text>
+</svg>
+` },
 
     { t: 'key', id: 'tradeoff', title: '★ 总线的核心权衡（这一句能推出后面所有内容）', c: String.raw`
       $$\text{总线}=\textbf{用"分时共享"换掉了"连线数量"}$$
@@ -128,49 +138,72 @@ KM.page({
     /* ================================================================== */
     { t: 'h', id: 'structures', c: '三、总线结构的演变' },
 
-    { t: 'code', id: 'one-bus', title: '① 单总线结构', lang: '',
-      c: String.raw`
-          CPU        主存        I/O接口1     I/O接口2
-           │          │            │            │
-        ═══╧══════════╧════════════╧════════════╧═══  系统总线（一条）
+    { t: 'diagram', id: 'one-bus', title: '① 单总线结构',
+      note: '一条线挂所有人',
+      caption: String.raw`==单总线的问题不在"慢"，在"独占"==：任一时刻只能成交一对，而且总线的节奏被最慢的那个设备拖住。后面两种结构都是在拆这一条。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 226" role="img" aria-label="单总线结构：所有部件共用一条系统总线">
+  <g class="n k"><rect x="40" y="20" width="136" height="40" rx="8"/><text class="bt sm" x="108.0" y="40.0" text-anchor="middle" dominant-baseline="central">CPU</text></g>
+  <path class="ar plain" d="M108,60 V84"/>
+  <g class="n k"><rect x="198" y="20" width="136" height="40" rx="8"/><text class="bt sm" x="266.0" y="40.0" text-anchor="middle" dominant-baseline="central">主存</text></g>
+  <path class="ar plain" d="M266,60 V84"/>
+  <g class="n k"><rect x="356" y="20" width="136" height="40" rx="8"/><text class="bt sm" x="424.0" y="40.0" text-anchor="middle" dominant-baseline="central">I/O 接口 1</text></g>
+  <path class="ar plain" d="M424,60 V84"/>
+  <g class="n k"><rect x="514" y="20" width="136" height="40" rx="8"/><text class="bt sm" x="582.0" y="40.0" text-anchor="middle" dominant-baseline="central">I/O 接口 2</text></g>
+  <path class="ar plain" d="M582,60 V84"/>
+  <g class="n g"><rect x="20" y="84" width="656" height="24" rx="6"/><text class="bt sm" x="348.0" y="96.0" text-anchor="middle" dominant-baseline="central">系统总线（只有一条）</text></g>
+  <g class="n g"><rect x="20" y="128" width="320" height="62" rx="8"/><text class="bt sm" x="180.0" y="149.0" text-anchor="middle" dominant-baseline="central">优点</text><text class="bs" x="180.0" y="169.0" text-anchor="middle" dominant-baseline="central">结构简单、成本低、易于扩充</text></g>
+  <g class="n r"><rect x="356" y="128" width="320" height="62" rx="8"/><text class="bt sm" x="516.0" y="149.0" text-anchor="middle" dominant-baseline="central">缺点</text><text class="bs" x="516.0" y="169.0" text-anchor="middle" dominant-baseline="central">同一时刻只允许一对部件通信</text></g>
+  <text class="cap" x="0" y="214">CPU 访存时 I/O 就不能传输 → 总线成为瓶颈；慢设备还会拖累整条总线</text>
+</svg>
+` },
 
-        优点：结构简单、成本低、【易于扩充】
-        缺点：★ 同一时刻只允许一对部件通信
-              CPU 访存时，I/O 就不能传输 ──▶ 总线成为瓶颈
-              且主存与外设【速度差异巨大】，慢设备会拖累整条总线
-      ` },
+    { t: 'diagram', id: 'two-bus', title: '② 双总线结构：把主存单独拉出来',
+      note: '不让慢设备拖累快通路',
+      caption: String.raw`==这一步换来的是"快慢分家"==：CPU 与主存之间不再被外设的节奏卡住。代价是多了一个通道处理器。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 274" role="img" aria-label="双总线结构：主存总线与 I/O 总线分开，由通道管理外设">
+  <g class="n k"><rect x="270" y="20" width="160" height="46" rx="8"/><text class="bt sm" x="350.0" y="43.0" text-anchor="middle" dominant-baseline="central">CPU</text></g>
+  <g class="n k"><rect x="30" y="20" width="160" height="46" rx="8"/><text class="bt sm" x="110.0" y="43.0" text-anchor="middle" dominant-baseline="central">主存</text></g>
+  <path class="ar plain" d="M190,43 H266"/>
+  <text class="lb" x="228" y="34" text-anchor="middle">主存总线（快）</text>
+  <g class="n g"><rect x="510" y="20" width="160" height="46" rx="8"/><text class="bt sm" x="590.0" y="43.0" text-anchor="middle" dominant-baseline="central">通道 / IOP</text></g>
+  <path class="ar plain" d="M430,43 H506"/>
+  <text class="lb" x="468" y="34" text-anchor="middle">I/O 总线（慢）</text>
+  <path class="ar plain" d="M590,66 V96"/>
+  <g class="n g"><rect x="420" y="96" width="250" height="22" rx="6"/><text class="bt sm" x="545.0" y="107.0" text-anchor="middle" dominant-baseline="central">I/O 总线</text></g>
+  <path class="ar plain" d="M466,118 V140"/>
+  <g class="n k"><rect x="430" y="140" width="72" height="38" rx="8"/><text class="bt xs" x="466.0" y="159.0" text-anchor="middle" dominant-baseline="central">磁盘</text></g>
+  <path class="ar plain" d="M550,118 V140"/>
+  <g class="n k"><rect x="514" y="140" width="72" height="38" rx="8"/><text class="bt xs" x="550.0" y="159.0" text-anchor="middle" dominant-baseline="central">打印机</text></g>
+  <path class="ar plain" d="M634,118 V140"/>
+  <g class="n k"><rect x="598" y="140" width="72" height="38" rx="8"/><text class="bt xs" x="634.0" y="159.0" text-anchor="middle" dominant-baseline="central">终端</text></g>
+  <g class="n g"><rect x="20" y="200" width="320" height="62" rx="8"/><text class="bt sm" x="180.0" y="221.0" text-anchor="middle" dominant-baseline="central">核心思想</text><text class="bs" x="180.0" y="241.0" text-anchor="middle" dominant-baseline="central">把高速的 CPU—主存通路和低速 I/O 通路分开</text></g>
+  <g class="n a"><rect x="356" y="200" width="320" height="62" rx="8"/><text class="bt sm" x="516.0" y="221.0" text-anchor="middle" dominant-baseline="central">通道 IOP 是一个专用处理器</text><text class="bs" x="516.0" y="241.0" text-anchor="middle" dominant-baseline="central">替 CPU 管 I/O，CPU 只下一条 I/O 指令</text></g>
+</svg>
+` },
 
-    { t: 'code', id: 'two-bus', title: '② 双总线结构：把主存单独拉出来', lang: '',
-      c: String.raw`
-                    ┌──────────┐
-          主存 ══════╡   CPU    ╞══════ 通道 / IOP
-                    └──────────┘         │
-            ↑                            │
-        主存总线（快）                  I/O总线（慢）
-                                         │
-                                  ┌──────┴──────┬──────────┐
-                                 磁盘          打印机      终端
-
-        ★ 核心思想：把【高速的 CPU-主存 通路】和【低速的 I/O 通路】分开，
-          不让慢设备拖累快通路。
-        ★ 通道（IOP）是一个【专用处理器】，替 CPU 管理 I/O，
-          CPU 只需下达一条 I/O 指令。
-      ` },
-
-    { t: 'code', id: 'three-bus', title: '③ 三总线结构：再给高速外设开一条直通主存的路', lang: '',
-      c: String.raw`
-                       主存总线
-          CPU ═══════════╤═══════════ 主存
-                         │                ▲
-                     I/O总线              ║ DMA总线
-                         │                ║
-              ┌──────────┴───┐       ┌────╨─────┐
-            打印机        终端       高速外设(磁盘)
-
-        ★ DMA 总线让高速外设【绕过 CPU，直接和主存交换数据】
-          —— 这正是 DMA 方式的物理基础，见 co/io/interrupt 的中断与 DMA 对比。
-        ★ 三条总线【同一时刻只有一条能占用主存】，但彼此的传输可以重叠。
-      ` },
+    { t: 'diagram', id: 'three-bus', title: '③ 三总线结构：再给高速外设开一条直通主存的路',
+      note: '这条 DMA 总线就是 DMA 方式的物理基础',
+      caption: String.raw`注意最后一句：==三条总线可以同时在传，但"占用主存"这件事仍然互斥==——这正是[资源互斥](#/co/cpu/multi-ctrl?at=three-kinds)那一类关系。具体的传送过程见 [DMA 三个阶段](#/co/io/dma?at=phases)。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 274" role="img" aria-label="三总线结构：主存总线、I/O 总线，外加一条直通主存的 DMA 总线">
+  <g class="n k"><rect x="30" y="30" width="150" height="46" rx="8"/><text class="bt sm" x="105.0" y="53.0" text-anchor="middle" dominant-baseline="central">CPU</text></g>
+  <g class="n k"><rect x="500" y="30" width="170" height="46" rx="8"/><text class="bt sm" x="585.0" y="53.0" text-anchor="middle" dominant-baseline="central">主存</text></g>
+  <path class="ar plain" d="M180,53 H496"/>
+  <text class="lb" x="338" y="44" text-anchor="middle">主存总线</text>
+  <path class="ar plain" d="M105,76 V110"/>
+  <g class="n g"><rect x="30" y="110" width="300" height="22" rx="6"/><text class="bt sm" x="180.0" y="121.0" text-anchor="middle" dominant-baseline="central">I/O 总线</text></g>
+  <path class="ar plain" d="M110,132 V156"/>
+  <g class="n k"><rect x="60" y="156" width="100" height="38" rx="8"/><text class="bt xs" x="110.0" y="175.0" text-anchor="middle" dominant-baseline="central">打印机</text></g>
+  <path class="ar plain" d="M270,132 V156"/>
+  <g class="n k"><rect x="220" y="156" width="100" height="38" rx="8"/><text class="bt xs" x="270.0" y="175.0" text-anchor="middle" dominant-baseline="central">终端</text></g>
+  <path class="ar plain" d="M585,76 V156"/>
+  <text class="lb" x="596" y="120">DMA 总线</text>
+  <g class="n a"><rect x="480" y="156" width="190" height="38" rx="8"/><text class="bt sm" x="575.0" y="175.0" text-anchor="middle" dominant-baseline="central">高速外设（磁盘）</text></g>
+  <g class="n g"><rect x="20" y="216" width="656" height="46" rx="8"/><text class="bt sm" x="348.0" y="229.0" text-anchor="middle" dominant-baseline="central">DMA 总线让高速外设绕过 CPU，直接和主存换数据</text><text class="bs" x="348.0" y="249.0" text-anchor="middle" dominant-baseline="central">三条总线同一时刻只有一条能占用主存，但彼此的传输可以重叠</text></g>
+</svg>
+` },
 
     { t: 'compare', id: 'struct-compare', title: '三种结构对比',
       cols: ['', '单总线', '双总线', '三总线'],

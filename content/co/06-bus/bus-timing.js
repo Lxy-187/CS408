@@ -32,23 +32,24 @@ KM.page({
       而普通的中断源==不是主设备==，它抢的是 CPU 的执行权，不是总线。
     ` },
 
-    { t: 'code', id: 'four-phases', title: '★ 一次总线传输的四个阶段', lang: '',
-      c: String.raw`
-        ① 申请分配阶段   主设备提出请求 ──▶ 总线仲裁 ──▶ 授予使用权
-                         ★ 这一阶段就是【仲裁】要解决的
-
-        ② 寻址阶段       主设备把【地址 + 命令】送上总线，选中从设备
-
-        ③ 传数阶段       主从设备之间【交换数据】
-                         ★ 这一阶段的"什么时候算收到"就是【定时】要解决的
-
-        ④ 结束阶段       主设备撤除地址、数据和命令，【让出总线】
-
-        ─────────────────────────────────────────────────────────
-        ★ ①④ 是开销，只有 ③ 在传有效数据。
-          这就是为什么突发传输值钱：一次 ①②④，摊给多个 ③。
-          （见 co/bus/bus-basic 的实际带宽计算）
-      ` },
+    { t: 'diagram', id: 'four-phases', title: '★ 一次总线传输的四个阶段',
+      note: '这一章的两个主题，正好各管一个阶段',
+      caption: String.raw`把这四段记牢，本章的结构就清楚了：==① 归仲裁管，③ 归定时管==，②④ 是固定动作。实际带宽为什么达不到理论值，也在这张图里——[见带宽计算](#/co/bus/bus-basic?at=ex-burst)。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 222" role="img" aria-label="一次总线传输的四个阶段：申请、寻址、传数、结束">
+  <g class="n a"><rect x="20" y="24" width="148" height="62" rx="8"/><text class="bt sm" x="94.0" y="45.0" text-anchor="middle" dominant-baseline="central">① 申请分配</text><text class="bs" x="94.0" y="65.0" text-anchor="middle" dominant-baseline="central">仲裁授予使用权</text></g>
+  <g class="n k"><rect x="190" y="24" width="148" height="62" rx="8"/><text class="bt sm" x="264.0" y="45.0" text-anchor="middle" dominant-baseline="central">② 寻址</text><text class="bs" x="264.0" y="65.0" text-anchor="middle" dominant-baseline="central">送地址+命令选中从设备</text></g>
+  <path class="ar" d="M172,55.0 H186"/>
+  <g class="n g"><rect x="360" y="24" width="148" height="62" rx="8"/><text class="bt sm" x="434.0" y="45.0" text-anchor="middle" dominant-baseline="central">③ 传数</text><text class="bs" x="434.0" y="65.0" text-anchor="middle" dominant-baseline="central">真正交换数据</text></g>
+  <path class="ar" d="M342,55.0 H356"/>
+  <g class="n a"><rect x="530" y="24" width="148" height="62" rx="8"/><text class="bt sm" x="604.0" y="45.0" text-anchor="middle" dominant-baseline="central">④ 结束</text><text class="bs" x="604.0" y="65.0" text-anchor="middle" dominant-baseline="central">撤信号，让出总线</text></g>
+  <path class="ar" d="M512,55.0 H526"/>
+  <g class="n a"><rect x="20" y="116" width="320" height="46" rx="8"/><text class="bt sm" x="180.0" y="129.0" text-anchor="middle" dominant-baseline="central">①④ 是开销</text><text class="bs" x="180.0" y="149.0" text-anchor="middle" dominant-baseline="central">申请、仲裁、撤销，不传任何有效数据</text></g>
+  <g class="n g"><rect x="356" y="116" width="320" height="46" rx="8"/><text class="bt sm" x="516.0" y="129.0" text-anchor="middle" dominant-baseline="central">只有 ③ 在传有效数据</text><text class="bs" x="516.0" y="149.0" text-anchor="middle" dominant-baseline="central">一次传得越多，摊到的开销越小</text></g>
+  <text class="cap" x="0" y="188">这就是突发传输值钱的原因：一次 ①②④，摊给连续多个 ③</text>
+  <text class="lb" x="0" y="210">① 阶段要解决的是「谁能用」= 仲裁；③ 阶段要解决的是「什么时候算收到」= 定时</text>
+</svg>
+` },
 
     /* ================================================================== */
     { t: 'h', id: 'arbitration', c: '二、总线仲裁：谁能用总线' },
@@ -66,27 +67,30 @@ KM.page({
     ` },
 
     /* ---------------- 链式查询 ---------------- */
-    { t: 'code', id: 'chain', title: '① 链式查询方式', lang: '',
-      c: String.raw`
-                        BG（总线同意，串行传递）
-        总线控制器 ────┬───────┬───────┬───────▶
-             ▲        │       │       │
-             │      ┌─┴─┐   ┌─┴─┐   ┌─┴─┐
-             │      │设备1│   │设备2│   │设备3│
-             │      └─┬─┘   └─┬─┘   └─┬─┘
-             │        │       │       │
-             ├────────┴───────┴───────┘   BR（总线请求，公共线）
-             └────────────────────────────  BS（总线忙，公共线）
-
-        工作过程：
-          设备有请求 → 拉低公共的 BR
-          控制器发出 BG，BG 沿着链条【一个一个往下传】
-          某设备有请求 → 【截住 BG 自己用】，并置 BS=1
-          某设备无请求 → 把 BG 原样传给下一个
-
-        ★ 优先级 = 物理位置：离总线控制器越近，优先级越高
-        ★ 只需 3 根线（BR、BG、BS），【与设备数量无关】
-      ` },
+    { t: 'diagram', id: 'chain', title: '① 链式查询方式',
+      note: '三根线走天下，代价是优先级被物理接线钉死',
+      caption: String.raw`==这条链就是中断判优里的菊花链==，同一个手法在两章里各出现一次。它的致命伤是：链上任何一个设备坏了，后面全部拿不到总线。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 294" role="img" aria-label="链式查询：BG 信号沿设备链串行传递，谁有请求谁截住">
+  <g class="n p"><rect x="20" y="60" width="140" height="52" rx="8"/><text class="bt sm" x="90.0" y="86.0" text-anchor="middle" dominant-baseline="central">总线控制器</text></g>
+  <g class="n k"><rect x="250" y="60" width="110" height="52" rx="8"/><text class="bt sm" x="305.0" y="86.0" text-anchor="middle" dominant-baseline="central">设备 1</text></g>
+  <g class="n k"><rect x="390" y="60" width="110" height="52" rx="8"/><text class="bt sm" x="445.0" y="86.0" text-anchor="middle" dominant-baseline="central">设备 2</text></g>
+  <g class="n k"><rect x="530" y="60" width="110" height="52" rx="8"/><text class="bt sm" x="585.0" y="86.0" text-anchor="middle" dominant-baseline="central">设备 3</text></g>
+  <path class="ar" d="M160,74 H246"/>
+  <path class="ar" d="M360,74 H386"/>
+  <path class="ar" d="M500,74 H526"/>
+  <text class="lb" x="200" y="64" text-anchor="middle">BG</text>
+  <text class="lb" x="373" y="64" text-anchor="middle">BG</text>
+  <text class="lb" x="513" y="64" text-anchor="middle">BG</text>
+  <text class="cap" x="250" y="46">BG 总线同意信号，沿着链条一个一个往下传</text>
+  <path class="ar plain" d="M90,112 V150 H660 V112"/>
+  <text class="lb" x="375" y="166" text-anchor="middle">BR 总线请求（公共线）</text>
+  <path class="ar plain" d="M90,112 V186 H660 V112"/>
+  <text class="lb" x="375" y="202" text-anchor="middle">BS 总线忙（公共线）</text>
+  <g class="n g"><rect x="20" y="220" width="320" height="62" rx="8"/><text class="bt sm" x="180.0" y="241.0" text-anchor="middle" dominant-baseline="central">有请求就截住 BG 自己用</text><text class="bs" x="180.0" y="261.0" text-anchor="middle" dominant-baseline="central">没请求就把 BG 原样传给下一个</text></g>
+  <g class="n a"><rect x="356" y="220" width="320" height="62" rx="8"/><text class="bt sm" x="516.0" y="241.0" text-anchor="middle" dominant-baseline="central">优先级 = 物理位置</text><text class="bs" x="516.0" y="261.0" text-anchor="middle" dominant-baseline="central">离控制器越近越高；只要 3 根线，与设备数无关</text></g>
+</svg>
+` },
 
     { t: 'warn', id: 'chain-note', title: '链式查询就是中断判优里的那条菊花链', c: String.raw`
       这个电路和[中断判优的链式排队器](#/co/io/interrupt?at=daisy-chain)==是同一个东西==，
@@ -103,55 +107,54 @@ KM.page({
     ` },
 
     /* ---------------- 计数器定时查询 ---------------- */
-    { t: 'code', id: 'counter', title: '② 计数器定时查询方式', lang: '',
-      c: String.raw`
-                    ┌──────────────┐
-                    │  总线控制器    │
-                    │  ┌────────┐  │
-                    │  │ 计数器  │  │
-                    │  └───┬────┘  │
-                    └──────┼───────┘
-                           │ 设备地址线（⌈log₂n⌉ 根）
-             ┌─────────────┼─────────────┐
-             ▼             ▼             ▼
-          ┌─────┐       ┌─────┐       ┌─────┐
-          │设备0 │       │设备1 │       │设备2 │
-          └──┬──┘       └──┬──┘       └──┬──┘
-             └─────────────┴─────────────┘
-                     BR（请求）  BS（忙）
-
-        工作过程：
-          有请求且总线不忙 → 计数器开始计数
-          计数值通过【设备地址线】广播给所有设备
-          某设备发现【计数值 == 自己的地址】且自己有请求 → 获得总线，置 BS=1
-
-        ★ 优先级由计数器的【起始值】决定：
-            每次都从 0 开始   ──▶ 固定优先级（设备 0 最高）
-            从上次终止点开始 ──▶ 循环优先级（各设备【机会均等】）
-            初值由程序设定   ──▶ 优先级可由软件灵活改变
-      ` },
+    { t: 'diagram', id: 'counter', title: '② 计数器定时查询方式',
+      note: '优先级由计数器的起始值决定 —— 这是它最灵活的地方',
+      caption: String.raw`三种起始值对应三种优先级策略，==这一条是选择题最爱考的==。和链式相比，它多了 $\lceil\log_2 n\rceil$ 根地址线，换来了"优先级可编程"。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 314" role="img" aria-label="计数器定时查询：计数值广播给所有设备，地址相符者得到总线">
+  <g class="n p"><rect x="250" y="20" width="200" height="60" rx="8"/><text class="bt sm" x="350.0" y="40.0" text-anchor="middle" dominant-baseline="central">总线控制器</text><text class="bs" x="350.0" y="60.0" text-anchor="middle" dominant-baseline="central">内含一个计数器</text></g>
+  <path class="ar" d="M350,80 V108"/>
+  <text class="lb" x="360" y="98">设备地址线（⌈log₂n⌉ 根），把计数值广播给所有设备</text>
+  <g class="n m"><rect x="20" y="112" width="656" height="20" rx="6"/><text class="bt sm" x="348.0" y="122.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <path class="ar plain" d="M165,132 V158"/>
+  <g class="n k"><rect x="90" y="158" width="150" height="44" rx="8"/><text class="bt sm" x="165.0" y="180.0" text-anchor="middle" dominant-baseline="central">设备 0</text></g>
+  <path class="ar plain" d="M355,132 V158"/>
+  <g class="n k"><rect x="280" y="158" width="150" height="44" rx="8"/><text class="bt sm" x="355.0" y="180.0" text-anchor="middle" dominant-baseline="central">设备 1</text></g>
+  <path class="ar plain" d="M545,132 V158"/>
+  <g class="n k"><rect x="470" y="158" width="150" height="44" rx="8"/><text class="bt sm" x="545.0" y="180.0" text-anchor="middle" dominant-baseline="central">设备 2</text></g>
+  <text class="cap" x="0" y="232">某设备发现「计数值 == 自己的地址」且自己有请求 → 获得总线，置 BS=1</text>
+  <g class="n g"><rect x="20" y="246" width="214" height="56" rx="8"/><text class="bt xs" x="127.0" y="264.0" text-anchor="middle" dominant-baseline="central">每次从 0 开始</text><text class="bs" x="127.0" y="284.0" text-anchor="middle" dominant-baseline="central">固定优先级，设备 0 最高</text></g>
+  <g class="n g"><rect x="242" y="246" width="214" height="56" rx="8"/><text class="bt xs" x="349.0" y="264.0" text-anchor="middle" dominant-baseline="central">从上次终止点开始</text><text class="bs" x="349.0" y="284.0" text-anchor="middle" dominant-baseline="central">循环优先级，机会均等</text></g>
+  <g class="n g"><rect x="464" y="246" width="214" height="56" rx="8"/><text class="bt xs" x="571.0" y="264.0" text-anchor="middle" dominant-baseline="central">初值由程序设定</text><text class="bs" x="571.0" y="284.0" text-anchor="middle" dominant-baseline="central">优先级可由软件随时改</text></g>
+</svg>
+` },
 
     /* ---------------- 独立请求 ---------------- */
-    { t: 'code', id: 'independent', title: '③ 独立请求方式', lang: '',
-      c: String.raw`
-                    ┌────────────────────┐
-                    │     总线控制器       │
-                    │  ┌──────────────┐  │
-                    │  │  排队器（判优） │  │
-                    │  └──────────────┘  │
-                    └──┬──┬──┬──┬──┬──┬──┘
-                BR1 ───┘  │  │  │  │  └─── BG3
-                BG1 ──────┘  │  │  └────── BR3
-                      BR2 ───┘  └─ BG2
-
-             ┌─────┐      ┌─────┐      ┌─────┐
-             │设备1 │      │设备2 │      │设备3 │
-             └─────┘      └─────┘      └─────┘
-
-        ★ 每个设备【独占一对】请求线 BRi 和同意线 BGi
-        ★ 控制器一眼就能看到所有请求，【一次判优即可选中】——速度最快
-        ★ 代价：需要 2n 根线，设备一多就撑不住
-      ` },
+    { t: 'diagram', id: 'independent', title: '③ 独立请求方式',
+      note: '每个设备独占一对 BRi / BGi',
+      caption: String.raw`==三种方式是一条"用线数换速度与灵活性"的连续谱==：链式 3 根线最慢最死板，独立请求 $2n$ 根线最快最灵活，计数器居中。[三者对比表](#/co/bus/bus-timing?at=arb-compare)`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 322" role="img" aria-label="独立请求方式：每个设备独占一对请求线与同意线">
+  <g class="n p"><rect x="230" y="20" width="240" height="60" rx="8"/><text class="bt sm" x="350.0" y="40.0" text-anchor="middle" dominant-baseline="central">总线控制器</text><text class="bs" x="350.0" y="60.0" text-anchor="middle" dominant-baseline="central">内含排队器（判优）</text></g>
+  <g class="n k"><rect x="60" y="190" width="180" height="46" rx="8"/><text class="bt sm" x="150.0" y="213.0" text-anchor="middle" dominant-baseline="central">设备 1</text></g>
+  <path class="ar plain" d="M120,190 V96"/>
+  <path class="ar plain" d="M180,96 V186"/>
+  <text class="lb mono" x="94" y="130">BR1</text>
+  <text class="lb mono" x="184" y="130">BG1</text>
+  <g class="n k"><rect x="270" y="190" width="180" height="46" rx="8"/><text class="bt sm" x="360.0" y="213.0" text-anchor="middle" dominant-baseline="central">设备 2</text></g>
+  <path class="ar plain" d="M330,190 V96"/>
+  <path class="ar plain" d="M390,96 V186"/>
+  <text class="lb mono" x="304" y="130">BR2</text>
+  <text class="lb mono" x="394" y="130">BG2</text>
+  <g class="n k"><rect x="480" y="190" width="180" height="46" rx="8"/><text class="bt sm" x="570.0" y="213.0" text-anchor="middle" dominant-baseline="central">设备 3</text></g>
+  <path class="ar plain" d="M540,190 V96"/>
+  <path class="ar plain" d="M600,96 V186"/>
+  <text class="lb mono" x="514" y="130">BR3</text>
+  <text class="lb mono" x="604" y="130">BG3</text>
+  <g class="n g"><rect x="20" y="254" width="320" height="56" rx="8"/><text class="bt sm" x="180.0" y="272.0" text-anchor="middle" dominant-baseline="central">一次判优即可选中</text><text class="bs" x="180.0" y="292.0" text-anchor="middle" dominant-baseline="central">控制器一眼看到所有请求 —— 速度最快</text></g>
+  <g class="n r"><rect x="356" y="254" width="320" height="56" rx="8"/><text class="bt sm" x="516.0" y="272.0" text-anchor="middle" dominant-baseline="central">代价是 2n 根线</text><text class="bs" x="516.0" y="292.0" text-anchor="middle" dominant-baseline="central">设备一多就撑不住</text></g>
+</svg>
+` },
 
     { t: 'compare', id: 'arb-compare', title: '★★ 三种集中仲裁方式对比（这张表必背）',
       cols: ['', '链式查询', '计数器定时查询', '独立请求'],
@@ -392,29 +395,27 @@ KM.page({
       $\text{ISA}$、早期 $\text{PCI}$ 用的就是这种方式。
     ` },
 
-    { t: 'code', id: 'split-transaction', title: '★ 分离式事务：把等待的时间还给总线', lang: '',
-      c: String.raw`
-        普通方式（总线被【全程占用】）
-        ─────────────────────────────────────────────────
-        主模块 ──发地址/命令──▶ ░░░░ 等从模块准备数据 ░░░░ ◀──收数据──
-        总线   ████████████████████████████████████████████  一直被占着
-                                ↑
-                        这段时间总线【空转】，别人也用不了
-
-        分离式事务（拆成两个独立的子周期）
-        ─────────────────────────────────────────────────
-        子周期1: 主模块申请总线 → 发地址+命令 → 【立刻放弃总线】
-        总线   ████                                          让出来了！
-                    ↓
-                （从模块自己去准备数据，不占总线）
-                其他设备可以在这段时间正常使用总线 ██████████
-                    ↓
-        子周期2: 从模块准备好后【自己申请总线】→ 送出数据
-        总线                                        ████
-
-        ★ 关键：从模块从"被动应答"变成了【主动发起】，
-          所以它在这一刻【也成了主设备】，同样要参与仲裁。
-      ` },
+    { t: 'diagram', id: 'split-transaction', title: '★ 分离式事务：把等待的时间还给总线',
+      note: '中间那段灰色的空转，被换成了别人可用的时间',
+      caption: String.raw`==这就是总线上的流水线==：把一次事务拆成两个子周期，空出来的那段时间让别的设备插进来用。代价是每个子周期都要重新仲裁一次，[单次延迟反而变长](#/co/bus/bus-timing?at=split-why)。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 264" role="img" aria-label="普通方式全程占用总线，分离式事务把等待时间还给总线">
+  <text class="cap" x="0" y="14">① 普通方式：总线被全程占用</text>
+  <g class="n k"><rect x="96" y="24" width="130" height="26" rx="4"/><text class="bt xs" x="161.0" y="37.0" text-anchor="middle" dominant-baseline="central">发地址 / 命令</text></g>
+  <g class="n m"><rect x="230" y="24" width="300" height="26" rx="4"/><text class="bt xs" x="380.0" y="37.0" text-anchor="middle" dominant-baseline="central">等从模块准备数据（总线空转）</text></g>
+  <g class="n k"><rect x="534" y="24" width="142" height="26" rx="4"/><text class="bt xs" x="605.0" y="37.0" text-anchor="middle" dominant-baseline="central">收数据</text></g>
+  <text class="lb" x="0" y="42" dominant-baseline="central">总线</text>
+  <g class="n r"><rect x="96" y="56" width="580" height="18" rx="4"/><text class="bt xs" x="386.0" y="65.0" text-anchor="middle" dominant-baseline="central">一直被占着，别人用不了</text></g>
+  <text class="cap" x="0" y="110">② 分离式事务：拆成两个独立的子周期</text>
+  <text class="lb" x="0" y="138" dominant-baseline="central">总线</text>
+  <g class="n k"><rect x="96" y="124" width="130" height="26" rx="4"/><text class="bt xs" x="161.0" y="137.0" text-anchor="middle" dominant-baseline="central">子周期 1：发地址+命令</text></g>
+  <g class="n g"><rect x="230" y="124" width="300" height="26" rx="4"/><text class="bt xs" x="380.0" y="137.0" text-anchor="middle" dominant-baseline="central">让出来了！别的设备正常使用</text></g>
+  <g class="n k"><rect x="534" y="124" width="142" height="26" rx="4"/><text class="bt xs" x="605.0" y="137.0" text-anchor="middle" dominant-baseline="central">子周期 2：送数据</text></g>
+  <text class="lb" x="0" y="170" dominant-baseline="central">从模块</text>
+  <g class="n a"><rect x="230" y="156" width="300" height="26" rx="4"/><text class="bt xs" x="380.0" y="169.0" text-anchor="middle" dominant-baseline="central">自己去准备数据，不占总线</text></g>
+  <g class="n g"><rect x="20" y="202" width="656" height="50" rx="8"/><text class="bt sm" x="348.0" y="217.0" text-anchor="middle" dominant-baseline="central">关键：从模块从"被动应答"变成了"主动发起"</text><text class="bs" x="348.0" y="237.0" text-anchor="middle" dominant-baseline="central">所以它在送数据那一刻也成了主设备，同样要参与仲裁</text></g>
+</svg>
+` },
 
     { t: 'key', id: 'split-why', title: '分离式事务的本质：这就是总线上的流水线', c: String.raw`
       普通传输里，==总线的利用率被"等待"拖垮了==：

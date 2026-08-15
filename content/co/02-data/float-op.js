@@ -53,22 +53,29 @@ KM.page({
       顺带一个细节：右移时空出来的高位，==原码补 0、补码补符号位==（算术右移）。
     ` },
 
-    { t: 'code', id: 'align-demo', title: '对阶现场：$0.5+(-0.4375)$', lang: '',
-      note: '注意 y 右移之后隐藏位的 1 掉到了小数点右边',
-      c: String.raw`
-        对阶前                              对阶后（都变成 2⁻¹）
-        x =  1.000 × 2⁻¹                    x =  1.000 × 2⁻¹
-        y = -1.110 × 2⁻²                    y = -0.111 × 2⁻¹   ← 尾数右移1位，阶码 -2→-1
-                                                  ↑
-                                            隐藏位的 1 右移进来了
-
-        尾数相加：  1.000
-                  - 0.111
-                  ────────
-                    0.001   × 2⁻¹     ← 最高位不是 1，要左规
-
-        左规 3 位： 1.000 × 2⁻⁴  = 0.0625
-      ` },
+    { t: 'diagram', id: 'align-demo', title: '对阶现场：0.5 + (−0.4375)',
+      note: '注意 y 右移之后，隐藏位的 1 掉到了小数点右边',
+      caption: String.raw`==对阶一律是小阶向大阶看齐==（尾数右移），不能反过来：左移会把已经有效的最高位挤出去，那是真丢数据；右移丢的是最低位，只损失精度。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 284" role="img" aria-label="0.5 加 −0.4375 的对阶现场：小阶向大阶看齐，尾数右移">
+  <text class="cap" x="0" y="14">对阶前</text>
+  <g class="n k"><rect x="20" y="24" width="300" height="40" rx="8"/><text class="bt sm" x="170.0" y="44.0" text-anchor="middle" dominant-baseline="central">x =  1.000 × 2⁻¹</text></g>
+  <g class="n a"><rect x="20" y="70" width="300" height="40" rx="8"/><text class="bt sm" x="170.0" y="90.0" text-anchor="middle" dominant-baseline="central">y = −1.110 × 2⁻²</text></g>
+  <path class="ar" d="M330,70 H370"/>
+  <text class="lb" x="350" y="60" text-anchor="middle">对阶</text>
+  <text class="cap" x="376" y="14">对阶后（都变成 2⁻¹）</text>
+  <g class="n k"><rect x="376" y="24" width="300" height="40" rx="8"/><text class="bt sm" x="526.0" y="44.0" text-anchor="middle" dominant-baseline="central">x =  1.000 × 2⁻¹</text></g>
+  <g class="n g"><rect x="376" y="70" width="300" height="40" rx="8"/><text class="bt sm" x="526.0" y="90.0" text-anchor="middle" dominant-baseline="central">y = −0.111 × 2⁻¹</text></g>
+  <text class="lb" x="376" y="126">尾数右移 1 位，阶码 −2 → −1</text>
+  <text class="lb" x="376" y="144">隐藏位的那个 1 右移进了小数点后面</text>
+  <text class="cap" x="0" y="176">尾数相加</text>
+  <text class="lb mono" x="40" y="196">　 1.000</text>
+  <text class="lb mono" x="40" y="216">− 0.111</text>
+  <text class="lb mono" x="40" y="236">━━━━━━━</text>
+  <text class="lb mono" x="40" y="256">　 0.001　× 2⁻¹</text>
+  <g class="n r"><rect x="200" y="182" width="476" height="46" rx="8"/><text class="bt sm" x="438.0" y="195.0" text-anchor="middle" dominant-baseline="central">最高位不是 1 —— 要左规</text><text class="bs" x="438.0" y="215.0" text-anchor="middle" dominant-baseline="central">左规 3 位：1.000 × 2⁻⁴ = 0.0625</text></g>
+</svg>
+` },
 
     { t: 'key', id: 'normalize-rule', title: '左规与右规', c: String.raw`
       | | 什么时候 | 怎么做 | 次数 |

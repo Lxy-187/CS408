@@ -32,30 +32,34 @@ KM.page({
       ==只要接口守规矩，CPU 就不必知道对面挂的是什么设备==。
     ` },
 
-    { t: 'code', id: 'interface-struct', title: 'I/O 接口的内部结构（三类寄存器是核心）', lang: '',
-      c: String.raw`
-        ◀──────────── 主机侧 ────────────┃──────── 设备侧 ────────▶
-
-        数据总线 ═══╤═══════════════════┓┃
-                    │                   ┃┃
-                ┌───▼────────────────┐  ┃┃
-                │ 数据缓冲寄存器 DBR   │══╪╪══▶ 设备的数据
-                └────────────────────┘  ┃┃
-                ┌────────────────────┐  ┃┃
-                │ 状态寄存器          │◀═╪╪═══ 设备状态（忙/完成/出错）
-                │  忙 完成 出错       │  ┃┃
-                └───▲────────────────┘  ┃┃
-                ┌───┴────────────────┐  ┃┃
-                │ 控制寄存器          │══╪╪══▶ 启动/停止/读/写 命令
-                └────────────────────┘  ┃┃
-                ┌────────────────────┐  ┃┃
-        地址 ───▶│ 设备选择电路(译码)  │  ┃┃
-        控制 ───▶│ 命令译码 + 时序控制  │  ┃┃
-                └────────────────────┘  ┃┃
-
-        ★ 这三类寄存器（数据 / 状态 / 控制）就是所谓的【I/O 端口】。
-          CPU 对外设的全部操作，归根结底都是【读写这几个端口】。
-      ` },
+    { t: 'diagram', id: 'interface-struct', title: 'I/O 接口的内部结构（三类寄存器是核心）',
+      note: '主机侧只看得见端口，看不见设备',
+      caption: String.raw`==接口存在的意义就是"把千奇百怪的设备统一成三个寄存器"==。端口怎么编址（统一编址 / 独立编址），见[下一节](#/co/io/io-mode?at=addressing-table)。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 324" role="img" aria-label="I/O 接口内部的数据、状态、控制三类寄存器">
+  <text class="cap" x="20" y="14">◀── 主机侧</text>
+  <text class="cap" x="676" y="14" text-anchor="end">设备侧 ──▶</text>
+  <g class="n m"><rect x="20" y="24" width="130" height="24" rx="6"/><text class="bt xs" x="85.0" y="36.0" text-anchor="middle" dominant-baseline="central">数据总线</text></g>
+  <g class="n m"><rect x="20" y="56" width="130" height="24" rx="6"/><text class="bt xs" x="85.0" y="68.0" text-anchor="middle" dominant-baseline="central">地址线</text></g>
+  <g class="n m"><rect x="20" y="88" width="130" height="24" rx="6"/><text class="bt xs" x="85.0" y="100.0" text-anchor="middle" dominant-baseline="central">控制线</text></g>
+  <g class="n m"><rect x="180" y="20" width="330" height="250" rx="8"/><text class="bt sm" x="345.0" y="145.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <text class="cap" x="200" y="42">I/O 接口</text>
+  <g class="n k"><rect x="200" y="56" width="290" height="60" rx="8"/><text class="bt sm" x="345.0" y="76.0" text-anchor="middle" dominant-baseline="central">数据缓冲寄存器 DBR</text><text class="bs" x="345.0" y="96.0" text-anchor="middle" dominant-baseline="central">放正在传的那个字节</text></g>
+  <g class="n g"><rect x="200" y="126" width="290" height="60" rx="8"/><text class="bt sm" x="345.0" y="146.0" text-anchor="middle" dominant-baseline="central">状态寄存器</text><text class="bs" x="345.0" y="166.0" text-anchor="middle" dominant-baseline="central">忙 / 完成 / 出错</text></g>
+  <g class="n a"><rect x="200" y="196" width="290" height="60" rx="8"/><text class="bt sm" x="345.0" y="216.0" text-anchor="middle" dominant-baseline="central">控制寄存器</text><text class="bs" x="345.0" y="236.0" text-anchor="middle" dominant-baseline="central">启动 / 停止 / 读 / 写</text></g>
+  <path class="ar" d="M150,36 H196"/>
+  <path class="ar plain" d="M150,68 H196 V120"/>
+  <path class="ar plain" d="M150,100 H196 V190"/>
+  <g class="n k"><rect x="546" y="56" width="130" height="60" rx="8"/><text class="bt sm" x="611.0" y="86.0" text-anchor="middle" dominant-baseline="central">设备的数据</text></g>
+  <g class="n g"><rect x="546" y="126" width="130" height="60" rx="8"/><text class="bt sm" x="611.0" y="156.0" text-anchor="middle" dominant-baseline="central">设备状态</text></g>
+  <g class="n a"><rect x="546" y="196" width="130" height="60" rx="8"/><text class="bt sm" x="611.0" y="226.0" text-anchor="middle" dominant-baseline="central">启停命令</text></g>
+  <path class="ar" d="M490,86 H542"/>
+  <path class="ar" d="M542,156 H494"/>
+  <path class="ar" d="M490,226 H542"/>
+  <text class="cap" x="0" y="292">这三类寄存器（数据 / 状态 / 控制）就是所谓的 I/O 端口</text>
+  <text class="lb" x="0" y="312">CPU 对外设的全部操作，归根结底都是「读写这几个端口」</text>
+</svg>
+` },
 
     { t: 'key', id: 'interface-func', title: 'I/O 接口的五项功能（简答题）', c: String.raw`
       1. **数据缓冲** —— ==用 DBR 弥补速度差==，这是最主要的功能；
@@ -110,29 +114,46 @@ KM.page({
     /* ================================================================== */
     { t: 'h', id: 'spectrum', c: '三、五种 I/O 方式：同一条轴上的五个刻度' },
 
-    { t: 'code', id: 'the-axis', title: '★★ 把五种方式排成一条线（这张图是本章的骨架）', lang: '',
-      c: String.raw`
-        CPU 每传【多少数据】才被打扰一次 ──────────────────────▶ 越来越少
-
-        程序查询        程序中断         DMA           通道        I/O处理机
-           │              │              │             │             │
-        CPU 全程         每传 1 个       每传 1 个     每传一组      几乎完全
-        死等轮询         字/字节         数据块        数据块        独立
-        打扰一次         打扰一次        打扰一次      打扰一次      不打扰
-           │              │              │             │             │
-        ═══╪══════════════╪══════════════╪═════════════╪═════════════╪═══▶
-         CPU占用100%     每字节付        每块付       每组块付      忽略不计
-                         一次中断        一次中断     一次中断
-           │              │              │             │             │
-        数据经过         数据经过        数据【不经过】 不经过        不经过
-          CPU             CPU             CPU
-
-        并行程度：  无      ────────────────────────────▶    最高
-        硬件成本：  最低    ────────────────────────────▶    最高
-
-        ★ 整章只有一条主线：【把 CPU 从数据搬运里一步步解放出来】。
-          每往右一格，CPU 被打扰的频率就降一个数量级，硬件就复杂一层。
-      ` },
+    { t: 'diagram', id: 'the-axis', title: '★★ 把五种方式排成一条线（这张图是本章的骨架）',
+      note: '从左到右：CPU 越来越闲，硬件越来越贵',
+      caption: String.raw`==这条轴上真正的分水岭在 DMA 那一格==：从这里开始数据不再经过 CPU。左边两种是"CPU 亲自搬"，右边三种是"别人替 CPU 搬"。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 304" role="img" aria-label="程序查询、程序中断、DMA、通道、IO 处理机五种方式排成的谱系">
+  <text class="cap" x="0" y="14">CPU 每传【多少数据】才被打扰一次 ──────────────▶ 越来越少</text>
+  <g class="n r"><rect x="112" y="28" width="108" height="40" rx="8"/><text class="bt xs" x="166.0" y="48.0" text-anchor="middle" dominant-baseline="central">程序查询</text></g>
+  <g class="n a"><rect x="226" y="28" width="108" height="40" rx="8"/><text class="bt xs" x="280.0" y="48.0" text-anchor="middle" dominant-baseline="central">程序中断</text></g>
+  <g class="n g"><rect x="340" y="28" width="108" height="40" rx="8"/><text class="bt xs" x="394.0" y="48.0" text-anchor="middle" dominant-baseline="central">DMA</text></g>
+  <g class="n g"><rect x="454" y="28" width="108" height="40" rx="8"/><text class="bt xs" x="508.0" y="48.0" text-anchor="middle" dominant-baseline="central">通道</text></g>
+  <g class="n k"><rect x="568" y="28" width="108" height="40" rx="8"/><text class="bt xs" x="622.0" y="48.0" text-anchor="middle" dominant-baseline="central">I/O 处理机</text></g>
+  <g class="n m"><rect x="112" y="80" width="564" height="16" rx="6"/><text class="bt xs" x="394.0" y="88.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <text class="lb" x="104" y="126" text-anchor="end" dominant-baseline="central">打扰频率</text>
+  <g class="n m"><rect x="112" y="112" width="108" height="28" rx="4"/><text class="bt xs" x="166.0" y="126.0" text-anchor="middle" dominant-baseline="central">全程死等</text></g>
+  <g class="n m"><rect x="226" y="112" width="108" height="28" rx="4"/><text class="bt xs" x="280.0" y="126.0" text-anchor="middle" dominant-baseline="central">每 1 字节</text></g>
+  <g class="n m"><rect x="340" y="112" width="108" height="28" rx="4"/><text class="bt xs" x="394.0" y="126.0" text-anchor="middle" dominant-baseline="central">每 1 数据块</text></g>
+  <g class="n m"><rect x="454" y="112" width="108" height="28" rx="4"/><text class="bt xs" x="508.0" y="126.0" text-anchor="middle" dominant-baseline="central">每一组块</text></g>
+  <g class="n m"><rect x="568" y="112" width="108" height="28" rx="4"/><text class="bt xs" x="622.0" y="126.0" text-anchor="middle" dominant-baseline="central">几乎不打扰</text></g>
+  <text class="lb" x="104" y="160" text-anchor="end" dominant-baseline="central">数据经过 CPU</text>
+  <g class="n m"><rect x="112" y="146" width="108" height="28" rx="4"/><text class="bt xs" x="166.0" y="160.0" text-anchor="middle" dominant-baseline="central">是</text></g>
+  <g class="n m"><rect x="226" y="146" width="108" height="28" rx="4"/><text class="bt xs" x="280.0" y="160.0" text-anchor="middle" dominant-baseline="central">是</text></g>
+  <g class="n m"><rect x="340" y="146" width="108" height="28" rx="4"/><text class="bt xs" x="394.0" y="160.0" text-anchor="middle" dominant-baseline="central">否</text></g>
+  <g class="n m"><rect x="454" y="146" width="108" height="28" rx="4"/><text class="bt xs" x="508.0" y="160.0" text-anchor="middle" dominant-baseline="central">否</text></g>
+  <g class="n m"><rect x="568" y="146" width="108" height="28" rx="4"/><text class="bt xs" x="622.0" y="160.0" text-anchor="middle" dominant-baseline="central">否</text></g>
+  <text class="lb" x="104" y="194" text-anchor="end" dominant-baseline="central">并行程度</text>
+  <g class="n m"><rect x="112" y="180" width="108" height="28" rx="4"/><text class="bt xs" x="166.0" y="194.0" text-anchor="middle" dominant-baseline="central">无</text></g>
+  <g class="n m"><rect x="226" y="180" width="108" height="28" rx="4"/><text class="bt xs" x="280.0" y="194.0" text-anchor="middle" dominant-baseline="central">较低</text></g>
+  <g class="n m"><rect x="340" y="180" width="108" height="28" rx="4"/><text class="bt xs" x="394.0" y="194.0" text-anchor="middle" dominant-baseline="central">高</text></g>
+  <g class="n m"><rect x="454" y="180" width="108" height="28" rx="4"/><text class="bt xs" x="508.0" y="194.0" text-anchor="middle" dominant-baseline="central">更高</text></g>
+  <g class="n m"><rect x="568" y="180" width="108" height="28" rx="4"/><text class="bt xs" x="622.0" y="194.0" text-anchor="middle" dominant-baseline="central">最高</text></g>
+  <text class="lb" x="104" y="228" text-anchor="end" dominant-baseline="central">硬件成本</text>
+  <g class="n m"><rect x="112" y="214" width="108" height="28" rx="4"/><text class="bt xs" x="166.0" y="228.0" text-anchor="middle" dominant-baseline="central">最低</text></g>
+  <g class="n m"><rect x="226" y="214" width="108" height="28" rx="4"/><text class="bt xs" x="280.0" y="228.0" text-anchor="middle" dominant-baseline="central">低</text></g>
+  <g class="n m"><rect x="340" y="214" width="108" height="28" rx="4"/><text class="bt xs" x="394.0" y="228.0" text-anchor="middle" dominant-baseline="central">中</text></g>
+  <g class="n m"><rect x="454" y="214" width="108" height="28" rx="4"/><text class="bt xs" x="508.0" y="228.0" text-anchor="middle" dominant-baseline="central">高</text></g>
+  <g class="n m"><rect x="568" y="214" width="108" height="28" rx="4"/><text class="bt xs" x="622.0" y="228.0" text-anchor="middle" dominant-baseline="central">最高</text></g>
+  <text class="cap" x="0" y="272">整章只有一条主线：把 CPU 从数据搬运里一步步解放出来</text>
+  <text class="lb" x="0" y="292">每往右一格，CPU 被打扰的频率就降一个数量级，硬件就复杂一层</text>
+</svg>
+` },
 
     { t: 'key', id: 'two-jumps', title: '★ 这条轴上有两次质变，别把五格看成均匀的', c: String.raw`
       **第一次质变：查询 $\to$ 中断 —— 从"CPU 主动问"到"设备主动报"。**
@@ -158,36 +179,31 @@ KM.page({
     /* ================================================================== */
     { t: 'h', id: 'polling', c: '四、程序查询方式' },
 
-    { t: 'code', id: 'polling-flow', title: '程序查询的流程：一个死循环', lang: '',
-      c: String.raw`
-            ┌─────────────────┐
-            │  CPU 发启动命令  │
-            └────────┬────────┘
-                     ▼
-            ┌─────────────────┐
-        ┌──▶│  读取状态寄存器  │
-        │   └────────┬────────┘
-        │            ▼
-        │      ┌───────────┐
-        │      │ 完成标志=1?│
-        │      └─────┬─────┘
-        │        否  │  是
-        └────────────┘  │
-          ★ 就在这里空转  ▼
-                  ┌─────────────────┐
-                  │ 从数据端口取数据  │
-                  │ 送入 CPU 寄存器   │
-                  └────────┬────────┘
-                           ▼
-                  ┌─────────────────┐
-                  │ 存入主存，计数-1 │
-                  └────────┬────────┘
-                           ▼
-                     传完了吗？──否──┐
-                           │是       │
-                           ▼         └──▶ 回到"读状态"
-                          结束
-      ` },
+    { t: 'diagram', id: 'polling-flow', title: '程序查询的流程：一个死循环',
+      note: '左边那条回边就是 CPU 的时间被吃掉的地方',
+      caption: String.raw`==两条回边要分清==：左边是"设备还没好"的空转，右边是"这个字节传完了，去取下一个"。查询开销正比于设备速率的推导，见[这一块](#/co/io/io-mode?at=polling-types)。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 460" role="img" aria-label="程序查询方式的流程：读状态、判完成、取数、存主存，未传完就回到读状态">
+  <g class="n k"><rect x="230" y="16" width="240" height="40" rx="8"/><text class="bt sm" x="350.0" y="36.0" text-anchor="middle" dominant-baseline="central">CPU 发启动命令</text></g>
+  <path class="ar" d="M350,56 V78"/>
+  <g class="n a"><rect x="230" y="82" width="240" height="40" rx="8"/><text class="bt sm" x="350.0" y="102.0" text-anchor="middle" dominant-baseline="central">读取状态寄存器</text></g>
+  <path class="ar" d="M350,122 V144"/>
+  <g class="n a"><rect x="230" y="148" width="240" height="40" rx="8"/><text class="bt sm" x="350.0" y="168.0" text-anchor="middle" dominant-baseline="central">完成标志 = 1 ?</text></g>
+  <path class="ar" d="M230,168 H120 V102 H226"/>
+  <text class="lb" x="126" y="96">否：就在这里空转</text>
+  <path class="ar" d="M350,188 V210"/>
+  <text class="lb" x="360" y="204">是</text>
+  <g class="n g"><rect x="230" y="214" width="240" height="40" rx="8"/><text class="bt sm" x="350.0" y="234.0" text-anchor="middle" dominant-baseline="central">取数据 → CPU 寄存器</text></g>
+  <path class="ar" d="M350,254 V276"/>
+  <g class="n g"><rect x="230" y="280" width="240" height="40" rx="8"/><text class="bt sm" x="350.0" y="300.0" text-anchor="middle" dominant-baseline="central">存入主存，计数 -1</text></g>
+  <path class="ar" d="M350,320 V342"/>
+  <g class="n k"><rect x="230" y="346" width="240" height="40" rx="8"/><text class="bt sm" x="350.0" y="366.0" text-anchor="middle" dominant-baseline="central">传完了吗？</text></g>
+  <path class="ar" d="M470,366 H580 V102 H474"/>
+  <text class="lb" x="486" y="96">否：回到读状态</text>
+  <path class="ar" d="M350,386 V408"/>
+  <g class="n m"><rect x="280" y="412" width="140" height="36" rx="8"/><text class="bt sm" x="350.0" y="430.0" text-anchor="middle" dominant-baseline="central">结束</text></g>
+</svg>
+` },
 
     { t: 'key', id: 'polling-types', title: '独占查询与定时查询', c: String.raw`
       | | 独占查询 | 定时查询（周期性查询） |

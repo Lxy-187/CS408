@@ -62,26 +62,48 @@ KM.page({
       每行多出的那 1 位脏位，是==算 Cache 总容量（含标记项）时容易漏掉的一位==。
     ` },
 
-    { t: 'code', id: 'wt-wb-timeline', title: '同一串写操作，两种策略下主存被访问几次', lang: '',
-      c: String.raw`
-        程序：对同一个 Cache 行里的 4 个字连写 4 次，之后该行被替换
-        ───────────────────────────────────────────────────────────
-
-        写直达：每次写都下到主存
-              写1      写2      写3      写4      替换
-            Cache ✔   Cache ✔  Cache ✔  Cache ✔   丢弃
-            主存  ✔   主存  ✔  主存  ✔  主存  ✔   ——
-                                          共访问主存 【4 次】
-
-        写回：只在换出时写一次
-              写1      写2      写3      写4      替换
-            Cache ✔   Cache ✔  Cache ✔  Cache ✔   脏 → 写回
-            脏位=1    脏位=1   脏位=1   脏位=1    主存 ✔
-                                          共访问主存 【1 次】
-
-        ★ 反过来，只写一次就被换出时，两者都是 1 次，写回并不占便宜。
-          写回赢在【同一行被反复写】，靠的还是局部性。
-      ` },
+    { t: 'diagram', id: 'wt-wb-timeline', title: '同一串写操作，两种策略下主存被访问几次',
+      note: '琥珀格 = 一次真正的主存访问',
+      caption: String.raw`==写回省下的是"中间那几次"==，不是"每一次"。所以题目里给的写次数、以及"是否同一行"，才是决定答案的关键。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 350" role="img" aria-label="同一串写操作在写直达与写回两种策略下访问主存的次数对比">
+  <text class="cap" x="0" y="14">对同一个 Cache 行里的 4 个字连写 4 次，之后该行被替换</text>
+  <text class="lb" x="198" y="36" text-anchor="middle">写 1</text>
+  <text class="lb" x="304" y="36" text-anchor="middle">写 2</text>
+  <text class="lb" x="410" y="36" text-anchor="middle">写 3</text>
+  <text class="lb" x="516" y="36" text-anchor="middle">写 4</text>
+  <text class="lb" x="622" y="36" text-anchor="middle">替换</text>
+  <text class="cap" x="0" y="62">① 写直达：每次写都下到主存</text>
+  <text class="lb" x="142" y="86" text-anchor="end" dominant-baseline="central">Cache</text>
+  <g class="n g"><rect x="150" y="72" width="96" height="28" rx="4"/><text class="bt xs" x="198.0" y="86.0" text-anchor="middle" dominant-baseline="central">✔</text></g>
+  <g class="n g"><rect x="256" y="72" width="96" height="28" rx="4"/><text class="bt xs" x="304.0" y="86.0" text-anchor="middle" dominant-baseline="central">✔</text></g>
+  <g class="n g"><rect x="362" y="72" width="96" height="28" rx="4"/><text class="bt xs" x="410.0" y="86.0" text-anchor="middle" dominant-baseline="central">✔</text></g>
+  <g class="n g"><rect x="468" y="72" width="96" height="28" rx="4"/><text class="bt xs" x="516.0" y="86.0" text-anchor="middle" dominant-baseline="central">✔</text></g>
+  <g class="n m"><rect x="574" y="72" width="96" height="28" rx="4"/><text class="bt xs" x="622.0" y="86.0" text-anchor="middle" dominant-baseline="central">丢弃</text></g>
+  <text class="lb" x="142" y="118" text-anchor="end" dominant-baseline="central">主存</text>
+  <g class="n a"><rect x="150" y="104" width="96" height="28" rx="4"/><text class="bt xs" x="198.0" y="118.0" text-anchor="middle" dominant-baseline="central">✔ 访存</text></g>
+  <g class="n a"><rect x="256" y="104" width="96" height="28" rx="4"/><text class="bt xs" x="304.0" y="118.0" text-anchor="middle" dominant-baseline="central">✔ 访存</text></g>
+  <g class="n a"><rect x="362" y="104" width="96" height="28" rx="4"/><text class="bt xs" x="410.0" y="118.0" text-anchor="middle" dominant-baseline="central">✔ 访存</text></g>
+  <g class="n a"><rect x="468" y="104" width="96" height="28" rx="4"/><text class="bt xs" x="516.0" y="118.0" text-anchor="middle" dominant-baseline="central">✔ 访存</text></g>
+  <g class="n m"><rect x="574" y="104" width="96" height="28" rx="4"/><text class="bt xs" x="622.0" y="118.0" text-anchor="middle" dominant-baseline="central">——</text></g>
+  <text class="lb" x="150" y="154">共访问主存 4 次</text>
+  <text class="cap" x="0" y="186">② 写回：只在换出时写一次</text>
+  <text class="lb" x="142" y="210" text-anchor="end" dominant-baseline="central">Cache</text>
+  <g class="n g"><rect x="150" y="196" width="96" height="28" rx="4"/><text class="bt xs" x="198.0" y="210.0" text-anchor="middle" dominant-baseline="central">✔ 脏位=1</text></g>
+  <g class="n g"><rect x="256" y="196" width="96" height="28" rx="4"/><text class="bt xs" x="304.0" y="210.0" text-anchor="middle" dominant-baseline="central">✔ 脏位=1</text></g>
+  <g class="n g"><rect x="362" y="196" width="96" height="28" rx="4"/><text class="bt xs" x="410.0" y="210.0" text-anchor="middle" dominant-baseline="central">✔ 脏位=1</text></g>
+  <g class="n g"><rect x="468" y="196" width="96" height="28" rx="4"/><text class="bt xs" x="516.0" y="210.0" text-anchor="middle" dominant-baseline="central">✔ 脏位=1</text></g>
+  <g class="n a"><rect x="574" y="196" width="96" height="28" rx="4"/><text class="bt xs" x="622.0" y="210.0" text-anchor="middle" dominant-baseline="central">脏 → 写回</text></g>
+  <text class="lb" x="142" y="242" text-anchor="end" dominant-baseline="central">主存</text>
+  <g class="n m"><rect x="150" y="228" width="96" height="28" rx="4"/><text class="bt xs" x="198.0" y="242.0" text-anchor="middle" dominant-baseline="central">不动</text></g>
+  <g class="n m"><rect x="256" y="228" width="96" height="28" rx="4"/><text class="bt xs" x="304.0" y="242.0" text-anchor="middle" dominant-baseline="central">不动</text></g>
+  <g class="n m"><rect x="362" y="228" width="96" height="28" rx="4"/><text class="bt xs" x="410.0" y="242.0" text-anchor="middle" dominant-baseline="central">不动</text></g>
+  <g class="n m"><rect x="468" y="228" width="96" height="28" rx="4"/><text class="bt xs" x="516.0" y="242.0" text-anchor="middle" dominant-baseline="central">不动</text></g>
+  <g class="n a"><rect x="574" y="228" width="96" height="28" rx="4"/><text class="bt xs" x="622.0" y="242.0" text-anchor="middle" dominant-baseline="central">✔ 访存</text></g>
+  <text class="lb" x="150" y="278">共访问主存 1 次</text>
+  <g class="n k"><rect x="20" y="292" width="656" height="46" rx="8"/><text class="bt sm" x="348.0" y="305.0" text-anchor="middle" dominant-baseline="central">反过来：只写一次就被换出时，两者都是 1 次</text><text class="bs" x="348.0" y="325.0" text-anchor="middle" dominant-baseline="central">写回赢在「同一行被反复写」，靠的还是局部性</text></g>
+</svg>
+` },
 
     { t: 'compare', id: 'wt-wb-table', title: '两种写命中策略的全部差别',
       cols: ['', '写直达 Write Through', '写回 Write Back'],
@@ -133,32 +155,33 @@ KM.page({
       ==把三段的结果加起来，就是这条指令的访存次数。==
     ` },
 
-    { t: 'code', id: 'access-chain', title: '每一段访存都要闯两道关', lang: '',
-      c: String.raw`
-                        一段访存（取指 / 取数 / 写数 各走一遍）
-        ─────────────────────────────────────────────────────────
-            虚拟地址
-               │
-               ▼
-          ┌─────────┐  命中 ───────────────────┐   不访存
-          │  TLB    │                          │
-          └────┬────┘  缺失 → 查页表 ★访存 ──┐ │
-               │                              │ │
-               ▼                              ▼ ▼
-            物理地址 ────────────────────▶ ┌───────┐
-                                           │ Cache │
-                                           └───┬───┘
-                        读命中 → 不访存         │
-                        读缺失 → ★访存（调块）  │
-                        写命中 → 写直达：★访存  │
-                                 写回  ：不访存 │
-                        写缺失 → ★访存         │
-
-        ★ = 一次真正的主存访问
-
-        问【至少】：把每一关都当成命中，只留下【机制上省不掉】的那些 ★
-        问【最多】：把每一关都当成缺失，一个一个加起来
-      ` },
+    { t: 'diagram', id: 'access-chain', title: '每一段访存都要闯两道关',
+      note: '两关分别是地址翻译（TLB）和数据（Cache）',
+      caption: String.raw`==这张图是"至少访存几次"这类题的模板==：先数有几段访存（取指、取数、写数），每段各过两关，再按题目问的是最少还是最多取值。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 498" role="img" aria-label="一段访存要先过 TLB 再过 Cache，各种命中与缺失组合下的主存访问次数">
+  <text class="cap" x="0" y="14">一段访存（取指 / 取数 / 写数 各走一遍）</text>
+  <g class="n k"><rect x="270" y="26" width="160" height="40" rx="8"/><text class="bt sm" x="350.0" y="46.0" text-anchor="middle" dominant-baseline="central">虚拟地址</text></g>
+  <path class="ar" d="M350,66 V88"/>
+  <g class="n g"><rect x="270" y="92" width="160" height="46" rx="8"/><text class="bt sm" x="350.0" y="115.0" text-anchor="middle" dominant-baseline="central">第一关：TLB</text></g>
+  <path class="ar plain" d="M270,115 H150 V115"/>
+  <text class="lb" x="20" y="110">命中 → 不访存</text>
+  <path class="ar" d="M430,115 H560"/>
+  <text class="lb" x="448" y="108">缺失 → 查页表 ★访存</text>
+  <path class="ar" d="M350,138 V162"/>
+  <g class="n k"><rect x="270" y="166" width="160" height="40" rx="8"/><text class="bt sm" x="350.0" y="186.0" text-anchor="middle" dominant-baseline="central">物理地址</text></g>
+  <path class="ar" d="M350,206 V230"/>
+  <g class="n g"><rect x="270" y="234" width="160" height="46" rx="8"/><text class="bt sm" x="350.0" y="257.0" text-anchor="middle" dominant-baseline="central">第二关：Cache</text></g>
+  <g class="n g"><rect x="20" y="300" width="214" height="48" rx="8"/><text class="bt xs" x="127.0" y="314.0" text-anchor="middle" dominant-baseline="central">读命中</text><text class="bs" x="127.0" y="334.0" text-anchor="middle" dominant-baseline="central">不访存</text></g>
+  <g class="n a"><rect x="242" y="300" width="214" height="48" rx="8"/><text class="bt xs" x="349.0" y="314.0" text-anchor="middle" dominant-baseline="central">读缺失</text><text class="bs" x="349.0" y="334.0" text-anchor="middle" dominant-baseline="central">★访存（调块）</text></g>
+  <g class="n a"><rect x="464" y="300" width="214" height="48" rx="8"/><text class="bt xs" x="571.0" y="314.0" text-anchor="middle" dominant-baseline="central">写命中 · 写直达</text><text class="bs" x="571.0" y="334.0" text-anchor="middle" dominant-baseline="central">★访存</text></g>
+  <g class="n g"><rect x="20" y="356" width="214" height="48" rx="8"/><text class="bt xs" x="127.0" y="370.0" text-anchor="middle" dominant-baseline="central">写命中 · 写回</text><text class="bs" x="127.0" y="390.0" text-anchor="middle" dominant-baseline="central">不访存</text></g>
+  <g class="n a"><rect x="242" y="356" width="214" height="48" rx="8"/><text class="bt xs" x="349.0" y="370.0" text-anchor="middle" dominant-baseline="central">写缺失</text><text class="bs" x="349.0" y="390.0" text-anchor="middle" dominant-baseline="central">★访存</text></g>
+  <text class="cap" x="0" y="428">★ = 一次真正的主存访问</text>
+  <g class="n k"><rect x="20" y="440" width="320" height="46" rx="8"/><text class="bt sm" x="180.0" y="453.0" text-anchor="middle" dominant-baseline="central">问【至少】</text><text class="bs" x="180.0" y="473.0" text-anchor="middle" dominant-baseline="central">每一关都当成命中，只留机制上省不掉的 ★</text></g>
+  <g class="n r"><rect x="356" y="440" width="320" height="46" rx="8"/><text class="bt sm" x="516.0" y="453.0" text-anchor="middle" dominant-baseline="central">问【最多】</text><text class="bs" x="516.0" y="473.0" text-anchor="middle" dominant-baseline="central">每一关都当成缺失，一个一个加起来</text></g>
+</svg>
+` },
 
     { t: 'warn', id: 'at-least', title: '「至少」两个字是这类题的题眼', c: String.raw`
       问==至少==，就是问==最理想的情况下还剩几次躲不掉的访存==。所以：

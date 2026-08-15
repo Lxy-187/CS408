@@ -61,21 +61,61 @@ KM.page({
       前面那个 1 是补出来的（见下面的隐藏位）。
     ` },
 
-    { t: 'code', id: 'bit-layout', title: '单精度 32 位的排布', lang: '',
-      note: '从高位到低位：符号 → 阶码 → 尾数，顺序是精心安排的',
-      c: String.raw`
-        31  30                23  22                                    0
-        ┌─┬───────────────────┬───────────────────────────────────────┐
-        │S│      E (8位)       │              M (23位)                  │
-        └─┴───────────────────┴───────────────────────────────────────┘
-         符号        阶码(移码)                   尾数(纯小数)
-
-        例：12.375 = 1100.011₂ = 1.100011₂ × 2³
-            S=0   E=3+127=130=10000010₂   M=100011000...0
-
-        0 10000010 10001100000000000000000  =  0x41460000
-        └┘└──────┘└─────────────────────┘
-      ` },
+    { t: 'diagram', id: 'bit-layout', title: '单精度 32 位的排布',
+      note: '红=符号、蓝=阶码、紫=尾数，全站统一这套配色',
+      caption: String.raw`==顺序是精心安排的==：符号在最高位、阶码在尾数之前，于是==两个同号浮点数可以直接按整数比大小==——这是移码存在的真正理由。想自己拨一拨，用[这个工具](#/tools/co/ieee754?at=widget)。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 254" role="img" aria-label="IEEE 754 单精度的位排布：符号 1 位、阶码 8 位、尾数 23 位">
+  <text class="lb mono" x="20" y="16">31</text>
+  <text class="lb mono" x="58" y="16">30</text>
+  <text class="lb mono" x="196" y="16">23</text>
+  <text class="lb mono" x="224" y="16">22</text>
+  <text class="lb mono" x="660" y="16" text-anchor="end">0</text>
+  <g class="n r"><rect x="20" y="24" width="28" height="40" rx="4"/><text class="bt sm" x="34.0" y="44.0" text-anchor="middle" dominant-baseline="central">S</text></g>
+  <g class="n k"><rect x="52" y="24" width="158" height="40" rx="4"/><text class="bt sm" x="131.0" y="44.0" text-anchor="middle" dominant-baseline="central">E　阶码 8 位</text></g>
+  <g class="n p"><rect x="214" y="24" width="446" height="40" rx="4"/><text class="bt sm" x="437.0" y="44.0" text-anchor="middle" dominant-baseline="central">M　尾数 23 位（纯小数）</text></g>
+  <text class="lb" x="34" y="80" text-anchor="middle">符号</text>
+  <text class="lb" x="131" y="80" text-anchor="middle">阶码（移码）</text>
+  <text class="lb" x="437" y="80" text-anchor="middle">尾数</text>
+  <text class="cap" x="0" y="116">例：12.375 = 1100.011₂ = 1.100011₂ × 2³</text>
+  <g class="n r"><rect x="20" y="128" width="210" height="46" rx="8"/><text class="bt xs" x="125.0" y="141.0" text-anchor="middle" dominant-baseline="central">S = 0</text><text class="bs" x="125.0" y="161.0" text-anchor="middle" dominant-baseline="central">正数</text></g>
+  <g class="n k"><rect x="244" y="128" width="210" height="46" rx="8"/><text class="bt xs" x="349.0" y="141.0" text-anchor="middle" dominant-baseline="central">E = 3 + 127 = 130</text><text class="bs" x="349.0" y="161.0" text-anchor="middle" dominant-baseline="central">10000010₂</text></g>
+  <g class="n p"><rect x="468" y="128" width="208" height="46" rx="8"/><text class="bt xs" x="572.0" y="141.0" text-anchor="middle" dominant-baseline="central">M = 100011000…0</text><text class="bs" x="572.0" y="161.0" text-anchor="middle" dominant-baseline="central">去掉隐藏的那个 1</text></g>
+  <g class="n r"><rect x="20" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="29.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="47" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="56.0" y="205.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n k"><rect x="66" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="75.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="85" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="94.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="104" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="113.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="123" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="132.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="142" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="151.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="161" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="170.0" y="205.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n k"><rect x="180" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="189.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n p"><rect x="207" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="216.0" y="205.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n p"><rect x="226" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="235.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n p"><rect x="245" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="254.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n p"><rect x="264" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="273.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n p"><rect x="283" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="292.0" y="205.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n p"><rect x="302" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="311.0" y="205.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n p"><rect x="321" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="330.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n p"><rect x="340" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="349.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n p"><rect x="359" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="368.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n p"><rect x="378" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="387.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n p"><rect x="397" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="406.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n p"><rect x="416" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="425.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n p"><rect x="435" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="444.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n p"><rect x="454" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="463.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n p"><rect x="473" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="482.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n p"><rect x="492" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="501.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n p"><rect x="511" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="520.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n p"><rect x="530" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="539.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n p"><rect x="549" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="558.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n p"><rect x="568" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="577.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n p"><rect x="587" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="596.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n p"><rect x="606" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="615.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n p"><rect x="625" y="190" width="18" height="30" rx="3"/><text class="bt xs" x="634.0" y="205.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <text class="lb mono" x="20" y="240">= 0x41460000</text>
+</svg>
+` },
 
     { t: 'compare', id: 'param-table', title: '两种精度的全部参数（必背）',
       cols: ['', '单精度 float', '双精度 double'],
@@ -183,20 +223,35 @@ KM.page({
       再点一次"前一个可表示数"，==亲眼看阶码掉成全 0 的那一瞬间==。
     ` },
 
-    { t: 'code', id: 'number-line', title: '正半轴上的刻度分布', lang: '',
+    { t: 'diagram', id: 'number-line', title: '正半轴上的刻度分布',
       note: '刻度不均匀是浮点数一切怪事的根源',
-      c: String.raw`
-        0    非规格化数        规格化数（每跨一个 2 的幂，间隔翻倍）              +∞
-        ├────┼────┼────┼───┼──────┼──────────────┼──────────────────────────┤
-        0  2⁻¹⁴⁹  …  2⁻¹²⁶  2⁻¹²⁵   2⁻¹²⁴            …          (2-2⁻²³)×2¹²⁷
-
-        等间隔一段 │←—— 每段内部等间隔，段与段之间间隔翻倍 ——→│
-
-        指数每 +1，这一段里相邻两数的间隔就翻一倍：
-          1.0 附近      间隔 = 2⁻²³ ≈ 1.2×10⁻⁷
-          2.0 附近      间隔 = 2⁻²²
-          10²⁰ 附近     间隔 = 2⁴³ ≈ 8.8×10¹²   ← 比 1 大得多，所以 10²⁰+1 = 10²⁰
-      ` },
+      caption: String.raw`==浮点数不是"精度差"，是"刻度随大小变粗"==。一个加数只要小于当前刻度的一半，加了等于没加。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 202" role="img" aria-label="浮点数在正半轴上的刻度：非规格化段等间隔，规格化段间隔逐段翻倍">
+  <text class="cap" x="0" y="14">正半轴上的刻度分布（每跨一个 2 的幂，间隔翻倍）</text>
+  <path class="ar plain" d="M40,60 H660"/>
+  <path class="ar plain" d="M40,52 V68"/>
+  <text class="lb mono" x="40" y="86" text-anchor="middle">0</text>
+  <path class="ar plain" d="M120,52 V68"/>
+  <text class="lb mono" x="120" y="86" text-anchor="middle">2⁻¹⁴⁹</text>
+  <path class="ar plain" d="M240,52 V68"/>
+  <text class="lb mono" x="240" y="86" text-anchor="middle">2⁻¹²⁶</text>
+  <path class="ar plain" d="M330,52 V68"/>
+  <text class="lb mono" x="330" y="86" text-anchor="middle">2⁻¹²⁵</text>
+  <path class="ar plain" d="M420,52 V68"/>
+  <text class="lb mono" x="420" y="86" text-anchor="middle">2⁻¹²⁴</text>
+  <path class="ar plain" d="M640,52 V68"/>
+  <text class="lb mono" x="676" y="86" text-anchor="end">(2−2⁻²³)×2¹²⁷</text>
+  <g class="n m"><rect x="40" y="34" width="200" height="14" rx="4"/><text class="bt xs" x="140.0" y="41.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <text class="lb" x="140" y="30" text-anchor="middle">非规格化数：等间隔</text>
+  <g class="n k"><rect x="242" y="34" width="418" height="14" rx="4"/><text class="bt xs" x="451.0" y="41.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <text class="lb" x="452" y="30" text-anchor="middle">规格化数：段内等间隔，段与段之间间隔翻倍</text>
+  <g class="n g"><rect x="20" y="110" width="214" height="56" rx="8"/><text class="bt xs" x="127.0" y="128.0" text-anchor="middle" dominant-baseline="central">1.0 附近</text><text class="bs" x="127.0" y="148.0" text-anchor="middle" dominant-baseline="central">间隔 = 2⁻²³ ≈ 1.2×10⁻⁷</text></g>
+  <g class="n g"><rect x="242" y="110" width="214" height="56" rx="8"/><text class="bt xs" x="349.0" y="128.0" text-anchor="middle" dominant-baseline="central">2.0 附近</text><text class="bs" x="349.0" y="148.0" text-anchor="middle" dominant-baseline="central">间隔 = 2⁻²²，正好翻一倍</text></g>
+  <g class="n a"><rect x="464" y="110" width="214" height="56" rx="8"/><text class="bt xs" x="571.0" y="128.0" text-anchor="middle" dominant-baseline="central">10²⁰ 附近</text><text class="bs" x="571.0" y="148.0" text-anchor="middle" dominant-baseline="central">间隔 = 2⁴³ ≈ 8.8×10¹²</text></g>
+  <text class="cap" x="0" y="190">所以 10²⁰ + 1 = 10²⁰ —— 加数比这一段的刻度间隔还小，根本落不到下一个刻度上</text>
+</svg>
+` },
 
     /* ================================================================== */
     { t: 'h', id: 'range', c: '四、表示范围' },
@@ -222,19 +277,34 @@ KM.page({
       双精度把 $127\to1023$、$23\to52$、$-126\to-1022$、$-149\to-1074$ 照抄一遍即可。
     ` },
 
-    { t: 'code', id: 'overflow-zones', title: '数轴上的四个溢出区', lang: '',
-      note: '这张图能直接回答"什么时候算溢出"',
-      c: String.raw`
-        负上溢          可表示的负数           负下溢  正下溢         可表示的正数          正上溢
-      ←────────┼──────────────────────┼───────────┼───────────┼──────────────────────┼────────→
-             -Max                   -min         0         +min                   +Max
-
-        ┌ 上溢 (overflow)：|结果| > Max，阶码超出上界 → 置 ±∞，触发异常
-        └ 下溢 (underflow)：0 < |结果| < min，阶码低于下界 → 退化为非规格化数，
-                            再小则置 ±0（机器零），通常不当作错误
-
-        Max = (2-2⁻²³)×2¹²⁷      min = 2⁻¹²⁶（规格化）/ 2⁻¹⁴⁹（含非规格化）
-      ` },
+    { t: 'diagram', id: 'overflow-zones', title: '数轴上的四个溢出区',
+      note: '红 = 上溢（出界），灰 = 下溢（挤在 0 附近）',
+      caption: String.raw`==上溢和下溢的处理完全不同==：上溢置 $\pm\infty$ 并触发异常，下溢先退化成非规格化数、再小才置 $\pm 0$，且通常不报错。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 252" role="img" aria-label="数轴上的四个溢出区：负上溢、负下溢、正下溢、正上溢">
+  <g class="n r"><rect x="20" y="30" width="100" height="34" rx="4"/><text class="bt xs" x="70.0" y="47.0" text-anchor="middle" dominant-baseline="central">负上溢</text></g>
+  <g class="n g"><rect x="122" y="30" width="170" height="34" rx="4"/><text class="bt xs" x="207.0" y="47.0" text-anchor="middle" dominant-baseline="central">可表示的负数</text></g>
+  <g class="n m"><rect x="294" y="30" width="60" height="34" rx="4"/><text class="bt xs" x="324.0" y="47.0" text-anchor="middle" dominant-baseline="central">负下溢</text></g>
+  <g class="n m"><rect x="356" y="30" width="60" height="34" rx="4"/><text class="bt xs" x="386.0" y="47.0" text-anchor="middle" dominant-baseline="central">正下溢</text></g>
+  <g class="n g"><rect x="418" y="30" width="170" height="34" rx="4"/><text class="bt xs" x="503.0" y="47.0" text-anchor="middle" dominant-baseline="central">可表示的正数</text></g>
+  <g class="n r"><rect x="590" y="30" width="86" height="34" rx="4"/><text class="bt xs" x="633.0" y="47.0" text-anchor="middle" dominant-baseline="central">正上溢</text></g>
+  <path class="ar plain" d="M20,84 H676"/>
+  <path class="ar plain" d="M122,76 V92"/>
+  <text class="lb mono" x="122" y="110" text-anchor="middle">−Max</text>
+  <path class="ar plain" d="M292,76 V92"/>
+  <text class="lb mono" x="292" y="110" text-anchor="middle">−min</text>
+  <path class="ar plain" d="M325,76 V92"/>
+  <text class="lb mono" x="325" y="110" text-anchor="middle">0</text>
+  <path class="ar plain" d="M356,76 V92"/>
+  <text class="lb mono" x="356" y="110" text-anchor="middle">+min</text>
+  <path class="ar plain" d="M588,76 V92"/>
+  <text class="lb mono" x="588" y="110" text-anchor="middle">+Max</text>
+  <g class="n r"><rect x="20" y="130" width="320" height="62" rx="8"/><text class="bt sm" x="180.0" y="151.0" text-anchor="middle" dominant-baseline="central">上溢 overflow</text><text class="bs" x="180.0" y="171.0" text-anchor="middle" dominant-baseline="central">|结果| &gt; Max，阶码超上界 → 置 ±∞，触发异常</text></g>
+  <g class="n m"><rect x="356" y="130" width="320" height="62" rx="8"/><text class="bt sm" x="516.0" y="151.0" text-anchor="middle" dominant-baseline="central">下溢 underflow</text><text class="bs" x="516.0" y="171.0" text-anchor="middle" dominant-baseline="central">0 &lt; |结果| &lt; min → 退化成非规格化数，再小置 ±0</text></g>
+  <text class="cap" x="0" y="218">Max = (2−2⁻²³)×2¹²⁷　　min = 2⁻¹²⁶（规格化）/ 2⁻¹⁴⁹（含非规格化）</text>
+  <text class="lb" x="0" y="240">注意：下溢通常不当作错误，上溢才是</text>
+</svg>
+` },
 
     { t: 'warn', id: 'overflow-vs-underflow', title: '上溢是错误，下溢通常不是', c: String.raw`
       - **上溢**：结果超出表示范围，==信息完全丢失==，IEEE 754 置 $\pm\infty$ 并置溢出标志。

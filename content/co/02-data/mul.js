@@ -29,22 +29,56 @@ KM.page({
       都是在问"这 $n$ 次加法是一次做完还是一次做一点"。
     ` },
 
-    { t: 'code', id: 'mul-by-hand', title: '$13\\times11$ 的二进制竖式', lang: '',
-      note: '四位乘四位，四个部分积，结果八位',
-      c: String.raw`
-              1 1 0 1        被乘数 13
-          ×   1 0 1 1        乘数   11
-          ─────────────
-              1 1 0 1        乘数第 0 位 = 1 → 加被乘数
-            1 1 0 1          乘数第 1 位 = 1 → 左移 1 位再加
-          0 0 0 0            乘数第 2 位 = 0 → 加 0
-        1 1 0 1              乘数第 3 位 = 1 → 左移 3 位再加
-        ─────────────────
-        1 0 0 0 1 1 1 1      = 143 = 13 × 11  ✓
-
-        四个部分积：13 + 26 + 0 + 104 = 143
-        n 位 × n 位 → 最多 2n 位，所以硬件里结果寄存器是双倍宽的
-      ` },
+    { t: 'diagram', id: 'mul-by-hand', title: '13 × 11 的二进制竖式',
+      note: '绿 = 加被乘数，灰 = 加 0；每往下一行左移一位',
+      caption: String.raw`==二进制竖式里没有"乘法"==：乘数的每一位不是 0 就是 1，所以每个部分积要么是被乘数本身、要么是 0。硬件要做的只有**移位**和**加法**。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 354" role="img" aria-label="13 乘 11 的二进制竖式：四个部分积逐位左移相加">
+  <text class="cap" x="0" y="14">13 × 11 的二进制竖式</text>
+  <g class="n k"><rect x="266" y="24" width="28" height="30" rx="3"/><text class="bt xs" x="280.0" y="39.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n k"><rect x="295" y="24" width="28" height="30" rx="3"/><text class="bt xs" x="309.0" y="39.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n k"><rect x="324" y="24" width="28" height="30" rx="3"/><text class="bt xs" x="338.0" y="39.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="353" y="24" width="28" height="30" rx="3"/><text class="bt xs" x="367.0" y="39.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <text class="lb" x="430" y="44">被乘数 13</text>
+  <g class="n k"><rect x="266" y="58" width="28" height="30" rx="3"/><text class="bt xs" x="280.0" y="73.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n k"><rect x="295" y="58" width="28" height="30" rx="3"/><text class="bt xs" x="309.0" y="73.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="324" y="58" width="28" height="30" rx="3"/><text class="bt xs" x="338.0" y="73.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n k"><rect x="353" y="58" width="28" height="30" rx="3"/><text class="bt xs" x="367.0" y="73.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <text class="lb" x="430" y="78">乘数 11</text>
+  <path class="ar plain" d="M140,96 H382"/>
+  <g class="n g"><rect x="266" y="104" width="28" height="30" rx="3"/><text class="bt xs" x="280.0" y="119.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n g"><rect x="295" y="104" width="28" height="30" rx="3"/><text class="bt xs" x="309.0" y="119.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n g"><rect x="324" y="104" width="28" height="30" rx="3"/><text class="bt xs" x="338.0" y="119.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n g"><rect x="353" y="104" width="28" height="30" rx="3"/><text class="bt xs" x="367.0" y="119.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <text class="lb" x="430" y="124">乘数第 0 位 = 1 → 加被乘数</text>
+  <g class="n g"><rect x="237" y="138" width="28" height="30" rx="3"/><text class="bt xs" x="251.0" y="153.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n g"><rect x="266" y="138" width="28" height="30" rx="3"/><text class="bt xs" x="280.0" y="153.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n g"><rect x="295" y="138" width="28" height="30" rx="3"/><text class="bt xs" x="309.0" y="153.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n g"><rect x="324" y="138" width="28" height="30" rx="3"/><text class="bt xs" x="338.0" y="153.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <text class="lb" x="430" y="158">第 1 位 = 1 → 左移 1 位再加</text>
+  <g class="n m"><rect x="208" y="172" width="28" height="30" rx="3"/><text class="bt xs" x="222.0" y="187.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="237" y="172" width="28" height="30" rx="3"/><text class="bt xs" x="251.0" y="187.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="266" y="172" width="28" height="30" rx="3"/><text class="bt xs" x="280.0" y="187.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="295" y="172" width="28" height="30" rx="3"/><text class="bt xs" x="309.0" y="187.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <text class="lb" x="430" y="192">第 2 位 = 0 → 加 0</text>
+  <g class="n g"><rect x="179" y="206" width="28" height="30" rx="3"/><text class="bt xs" x="193.0" y="221.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n g"><rect x="208" y="206" width="28" height="30" rx="3"/><text class="bt xs" x="222.0" y="221.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n g"><rect x="237" y="206" width="28" height="30" rx="3"/><text class="bt xs" x="251.0" y="221.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n g"><rect x="266" y="206" width="28" height="30" rx="3"/><text class="bt xs" x="280.0" y="221.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <text class="lb" x="430" y="226">第 3 位 = 1 → 左移 3 位再加</text>
+  <path class="ar plain" d="M140,244 H382"/>
+  <g class="n a"><rect x="150" y="250" width="28" height="30" rx="3"/><text class="bt xs" x="164.0" y="265.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n a"><rect x="179" y="250" width="28" height="30" rx="3"/><text class="bt xs" x="193.0" y="265.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n a"><rect x="208" y="250" width="28" height="30" rx="3"/><text class="bt xs" x="222.0" y="265.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n a"><rect x="237" y="250" width="28" height="30" rx="3"/><text class="bt xs" x="251.0" y="265.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n a"><rect x="266" y="250" width="28" height="30" rx="3"/><text class="bt xs" x="280.0" y="265.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n a"><rect x="295" y="250" width="28" height="30" rx="3"/><text class="bt xs" x="309.0" y="265.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n a"><rect x="324" y="250" width="28" height="30" rx="3"/><text class="bt xs" x="338.0" y="265.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n a"><rect x="353" y="250" width="28" height="30" rx="3"/><text class="bt xs" x="367.0" y="265.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <text class="lb" x="430" y="270">= 143 = 13 × 11  ✓</text>
+  <g class="n g"><rect x="20" y="296" width="656" height="46" rx="8"/><text class="bt sm" x="348.0" y="309.0" text-anchor="middle" dominant-baseline="central">四个部分积：13 + 26 + 0 + 104 = 143</text><text class="bs" x="348.0" y="329.0" text-anchor="middle" dominant-baseline="central">n 位 × n 位 → 最多 2n 位，所以硬件里结果寄存器是双倍宽的</text></g>
+</svg>
+` },
 
     /* ================================================================== */
     { t: 'h', id: 'hardware', c: '二、两种硬件实现：拿面积换时间' },

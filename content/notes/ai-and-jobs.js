@@ -235,22 +235,85 @@ KM.page({
       ==而且剩下的往往恰好是最难外包的那部分。==
     ` },
 
-    { t: 'code', id: 'job-bundle', title: '把一个岗位拆开看', lang: '',
-      note: '实心格 = AI 目前能接管的比例。越往下越接管不了，而越往下越是这个岗位真正的内核',
-      c: String.raw`
-        「前端工程师」这一捆任务
-        ──────────────────────────────────────
-        ████████░░   写组件代码
-        ██████░░░░   调样式与兼容性
-        █░░░░░░░░░   判断这个交互别扭      ← 要立场
-        █░░░░░░░░░   跟产品掰扯需求边界    ← 要人际与权衡
-        ░░░░░░░░░░   决定这版能不能发      ← 要担责
-        ░░░░░░░░░░   出事了半夜爬起来查    ← 要担责
-        ──────────────────────────────────────
-
-        省掉 60% 的工时  ≠  省掉 60% 的岗位
-        因为剩下的 40% 无法被单独切出来卖给任何人
-      ` },
+    { t: 'diagram', id: 'job-bundle', title: '把一个岗位拆开看',
+      note: '实心格 = AI 目前能接管的比例',
+      caption: String.raw`==越往下越接管不了，而越往下越是这个岗位真正的内核。==`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 302" role="img" aria-label="把一个岗位的任务拆开，AI 能接管的比例逐条不同">
+  <text class="cap" x="0" y="14">「前端工程师」这一捆任务</text>
+  <text class="lb" x="200" y="41" text-anchor="end" dominant-baseline="central">写组件代码</text>
+  <g class="n a"><rect x="212" y="26" width="24" height="26" rx="4"/><text class="bt xs" x="224.0" y="39.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n a"><rect x="238" y="26" width="24" height="26" rx="4"/><text class="bt xs" x="250.0" y="39.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n a"><rect x="264" y="26" width="24" height="26" rx="4"/><text class="bt xs" x="276.0" y="39.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n a"><rect x="290" y="26" width="24" height="26" rx="4"/><text class="bt xs" x="302.0" y="39.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n a"><rect x="316" y="26" width="24" height="26" rx="4"/><text class="bt xs" x="328.0" y="39.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n a"><rect x="342" y="26" width="24" height="26" rx="4"/><text class="bt xs" x="354.0" y="39.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n a"><rect x="368" y="26" width="24" height="26" rx="4"/><text class="bt xs" x="380.0" y="39.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n a"><rect x="394" y="26" width="24" height="26" rx="4"/><text class="bt xs" x="406.0" y="39.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="420" y="26" width="24" height="26" rx="4"/><text class="bt xs" x="432.0" y="39.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="446" y="26" width="24" height="26" rx="4"/><text class="bt xs" x="458.0" y="39.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <text class="lb" x="200" y="75" text-anchor="end" dominant-baseline="central">调样式与兼容性</text>
+  <g class="n a"><rect x="212" y="60" width="24" height="26" rx="4"/><text class="bt xs" x="224.0" y="73.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n a"><rect x="238" y="60" width="24" height="26" rx="4"/><text class="bt xs" x="250.0" y="73.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n a"><rect x="264" y="60" width="24" height="26" rx="4"/><text class="bt xs" x="276.0" y="73.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n a"><rect x="290" y="60" width="24" height="26" rx="4"/><text class="bt xs" x="302.0" y="73.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n a"><rect x="316" y="60" width="24" height="26" rx="4"/><text class="bt xs" x="328.0" y="73.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n a"><rect x="342" y="60" width="24" height="26" rx="4"/><text class="bt xs" x="354.0" y="73.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="368" y="60" width="24" height="26" rx="4"/><text class="bt xs" x="380.0" y="73.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="394" y="60" width="24" height="26" rx="4"/><text class="bt xs" x="406.0" y="73.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="420" y="60" width="24" height="26" rx="4"/><text class="bt xs" x="432.0" y="73.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="446" y="60" width="24" height="26" rx="4"/><text class="bt xs" x="458.0" y="73.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <text class="lb" x="200" y="109" text-anchor="end" dominant-baseline="central">判断这个交互别扭</text>
+  <g class="n a"><rect x="212" y="94" width="24" height="26" rx="4"/><text class="bt xs" x="224.0" y="107.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="238" y="94" width="24" height="26" rx="4"/><text class="bt xs" x="250.0" y="107.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="264" y="94" width="24" height="26" rx="4"/><text class="bt xs" x="276.0" y="107.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="290" y="94" width="24" height="26" rx="4"/><text class="bt xs" x="302.0" y="107.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="316" y="94" width="24" height="26" rx="4"/><text class="bt xs" x="328.0" y="107.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="342" y="94" width="24" height="26" rx="4"/><text class="bt xs" x="354.0" y="107.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="368" y="94" width="24" height="26" rx="4"/><text class="bt xs" x="380.0" y="107.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="394" y="94" width="24" height="26" rx="4"/><text class="bt xs" x="406.0" y="107.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="420" y="94" width="24" height="26" rx="4"/><text class="bt xs" x="432.0" y="107.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="446" y="94" width="24" height="26" rx="4"/><text class="bt xs" x="458.0" y="107.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <text class="lb" x="484" y="111">← 要立场</text>
+  <text class="lb" x="200" y="143" text-anchor="end" dominant-baseline="central">跟产品掰扯需求边界</text>
+  <g class="n a"><rect x="212" y="128" width="24" height="26" rx="4"/><text class="bt xs" x="224.0" y="141.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="238" y="128" width="24" height="26" rx="4"/><text class="bt xs" x="250.0" y="141.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="264" y="128" width="24" height="26" rx="4"/><text class="bt xs" x="276.0" y="141.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="290" y="128" width="24" height="26" rx="4"/><text class="bt xs" x="302.0" y="141.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="316" y="128" width="24" height="26" rx="4"/><text class="bt xs" x="328.0" y="141.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="342" y="128" width="24" height="26" rx="4"/><text class="bt xs" x="354.0" y="141.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="368" y="128" width="24" height="26" rx="4"/><text class="bt xs" x="380.0" y="141.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="394" y="128" width="24" height="26" rx="4"/><text class="bt xs" x="406.0" y="141.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="420" y="128" width="24" height="26" rx="4"/><text class="bt xs" x="432.0" y="141.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="446" y="128" width="24" height="26" rx="4"/><text class="bt xs" x="458.0" y="141.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <text class="lb" x="484" y="145">← 要人际与权衡</text>
+  <text class="lb" x="200" y="177" text-anchor="end" dominant-baseline="central">决定这版能不能发</text>
+  <g class="n m"><rect x="212" y="162" width="24" height="26" rx="4"/><text class="bt xs" x="224.0" y="175.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="238" y="162" width="24" height="26" rx="4"/><text class="bt xs" x="250.0" y="175.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="264" y="162" width="24" height="26" rx="4"/><text class="bt xs" x="276.0" y="175.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="290" y="162" width="24" height="26" rx="4"/><text class="bt xs" x="302.0" y="175.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="316" y="162" width="24" height="26" rx="4"/><text class="bt xs" x="328.0" y="175.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="342" y="162" width="24" height="26" rx="4"/><text class="bt xs" x="354.0" y="175.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="368" y="162" width="24" height="26" rx="4"/><text class="bt xs" x="380.0" y="175.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="394" y="162" width="24" height="26" rx="4"/><text class="bt xs" x="406.0" y="175.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="420" y="162" width="24" height="26" rx="4"/><text class="bt xs" x="432.0" y="175.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="446" y="162" width="24" height="26" rx="4"/><text class="bt xs" x="458.0" y="175.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <text class="lb" x="484" y="179">← 要担责</text>
+  <text class="lb" x="200" y="211" text-anchor="end" dominant-baseline="central">出事了半夜爬起来查</text>
+  <g class="n m"><rect x="212" y="196" width="24" height="26" rx="4"/><text class="bt xs" x="224.0" y="209.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="238" y="196" width="24" height="26" rx="4"/><text class="bt xs" x="250.0" y="209.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="264" y="196" width="24" height="26" rx="4"/><text class="bt xs" x="276.0" y="209.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="290" y="196" width="24" height="26" rx="4"/><text class="bt xs" x="302.0" y="209.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="316" y="196" width="24" height="26" rx="4"/><text class="bt xs" x="328.0" y="209.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="342" y="196" width="24" height="26" rx="4"/><text class="bt xs" x="354.0" y="209.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="368" y="196" width="24" height="26" rx="4"/><text class="bt xs" x="380.0" y="209.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="394" y="196" width="24" height="26" rx="4"/><text class="bt xs" x="406.0" y="209.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="420" y="196" width="24" height="26" rx="4"/><text class="bt xs" x="432.0" y="209.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="446" y="196" width="24" height="26" rx="4"/><text class="bt xs" x="458.0" y="209.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <text class="lb" x="484" y="213">← 要担责</text>
+  <g class="n k"><rect x="20" y="240" width="656" height="50" rx="8"/><text class="bt sm" x="348.0" y="255.0" text-anchor="middle" dominant-baseline="central">省掉 60% 的工时　≠　省掉 60% 的岗位</text><text class="bs" x="348.0" y="275.0" text-anchor="middle" dominant-baseline="central">因为剩下的 40% 无法被单独切出来卖给任何人</text></g>
+</svg>
+` },
 
     { t: 'md', c: String.raw`
       更反直觉的是：==当一捆任务里某几项变便宜，剩下几项的相对价值反而上升==。

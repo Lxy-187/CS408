@@ -58,23 +58,69 @@ KM.page({
       **危险就在这一步**：原来是数值位的那一位，截断后可能==摇身一变成了符号位==。
     ` },
 
-    { t: 'code', id: 'trunc-demo', title: '$32777$ 装进 short 的现场', lang: '',
-      note: '注意第 15 位的身份变了',
-      c: String.raw`
-        int i = 32777;          32777 = 2¹⁵ + 9
-
-        i   0000 0000 0000 0000 | 1000 0000 0000 1001     (32 位)
-            └──── 直接丢弃 ────┘ └────── 保留低 16 位 ─────┘
-
-        si                        1000 0000 0000 1001     (16 位)
-                                  ↑
-                                  在 int 里它是数值位，权重 +2¹⁵
-                                  在 short 里它是符号位，权重 −2¹⁵
-
-        si 的真值 = −2¹⁵ + 9 = −32768 + 9 = −32759
-
-        ── 权重从 +32768 翻成 −32768，一来一回差了 65536 = 2¹⁶ ──
-      ` },
+    { t: 'diagram', id: 'trunc-demo', title: '32777 装进 short 的现场',
+      note: '红格就是那个换了身份的比特',
+      caption: String.raw`==截断不改动任何一个保留下来的比特==，改的是"怎么读它们"。差值恒为 $2^{16}$ 的原因就在红格：它的权重从 $+2^{15}$ 变成了 $-2^{15}$。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 270" role="img" aria-label="32777 截断成 short 时，第 15 位从数值位变成符号位">
+  <text class="cap" x="0" y="14">int i = 32777 = 2¹⁵ + 9　（32 位）</text>
+  <g class="n m"><rect x="20" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="28.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="37" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="45.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="54" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="62.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="71" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="79.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="93" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="101.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="110" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="118.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="127" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="135.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="144" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="152.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="166" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="174.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="183" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="191.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="200" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="208.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="217" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="225.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="239" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="247.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="256" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="264.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="273" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="281.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="290" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="298.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n r"><rect x="321" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="329.0" y="37.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n k"><rect x="338" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="346.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="355" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="363.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="372" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="380.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="394" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="402.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="411" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="419.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="428" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="436.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="445" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="453.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="467" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="475.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="484" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="492.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="501" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="509.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="518" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="526.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="540" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="548.0" y="37.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n k"><rect x="557" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="565.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="574" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="582.0" y="37.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="591" y="24" width="16" height="26" rx="3"/><text class="bt xs" x="599.0" y="37.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <text class="lb" x="20" y="66">高 16 位：直接丢弃</text>
+  <text class="lb" x="321" y="66">低 16 位：原样保留</text>
+  <text class="cap" x="0" y="104">short si —— 同样这 16 个比特，换个类型读</text>
+  <g class="n r"><rect x="321" y="114" width="16" height="26" rx="3"/><text class="bt xs" x="329.0" y="127.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n k"><rect x="338" y="114" width="16" height="26" rx="3"/><text class="bt xs" x="346.0" y="127.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="355" y="114" width="16" height="26" rx="3"/><text class="bt xs" x="363.0" y="127.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="372" y="114" width="16" height="26" rx="3"/><text class="bt xs" x="380.0" y="127.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="394" y="114" width="16" height="26" rx="3"/><text class="bt xs" x="402.0" y="127.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="411" y="114" width="16" height="26" rx="3"/><text class="bt xs" x="419.0" y="127.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="428" y="114" width="16" height="26" rx="3"/><text class="bt xs" x="436.0" y="127.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="445" y="114" width="16" height="26" rx="3"/><text class="bt xs" x="453.0" y="127.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="467" y="114" width="16" height="26" rx="3"/><text class="bt xs" x="475.0" y="127.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="484" y="114" width="16" height="26" rx="3"/><text class="bt xs" x="492.0" y="127.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="501" y="114" width="16" height="26" rx="3"/><text class="bt xs" x="509.0" y="127.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="518" y="114" width="16" height="26" rx="3"/><text class="bt xs" x="526.0" y="127.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="540" y="114" width="16" height="26" rx="3"/><text class="bt xs" x="548.0" y="127.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n k"><rect x="557" y="114" width="16" height="26" rx="3"/><text class="bt xs" x="565.0" y="127.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="574" y="114" width="16" height="26" rx="3"/><text class="bt xs" x="582.0" y="127.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="591" y="114" width="16" height="26" rx="3"/><text class="bt xs" x="599.0" y="127.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <path class="ar" d="M329,164 V144"/>
+  <g class="n a"><rect x="20" y="172" width="300" height="62" rx="8"/><text class="bt sm" x="170.0" y="193.0" text-anchor="middle" dominant-baseline="central">si 的真值 = −2¹⁵ + 9</text><text class="bs" x="170.0" y="213.0" text-anchor="middle" dominant-baseline="central">= −32768 + 9 = −32759</text></g>
+  <g class="n r"><rect x="336" y="172" width="340" height="62" rx="8"/><text class="bt sm" x="506.0" y="193.0" text-anchor="middle" dominant-baseline="central">红格那一位的身份变了</text><text class="bs" x="506.0" y="213.0" text-anchor="middle" dominant-baseline="central">在 int 里权重 +2¹⁵，在 short 里权重 −2¹⁵</text></g>
+  <text class="cap" x="0" y="258">权重从 +32768 翻成 −32768，一来一回正好差 65536 = 2¹⁶</text>
+</svg>
+` },
 
     { t: 'warn', id: 'trunc-danger', title: '截断不可逆，扩展可逆', c: String.raw`
       很多人栽在"转出去再转回来应该还是原来的数"上。事实是：
@@ -171,22 +217,99 @@ KM.page({
       扩到 16 位是 $\texttt{1111 1111 1111 1111}$，还是 $-1$。
     ` },
 
-    { t: 'code', id: 'order-demo', title: '$\\texttt{short}\\to\\texttt{unsigned int}$：两步的先后', lang: '',
+    { t: 'diagram', id: 'order-demo', title: 'short → unsigned int：两步的先后',
       note: '走错顺序会在 16 位上取模，差出一个数量级',
-      c: String.raw`
-        short si = -32767;        16 位补码  1000 0000 0000 0001
-
-        ✅ 正确：先按原类型(有符号)扩展，再按目标类型(无符号)解释
-           ① 符号扩展   1111 1111 1111 1111 1000 0000 0000 0001
-           ② 当无符号读 = 2³² − 32767 = 2³² − 2¹⁵ + 1        ← 答案
-
-        ❌ 反了：先在 16 位上按无符号解释，再补零扩展
-           ① 当无符号读 = 2¹⁶ − 32767 = 32769 = 2¹⁵ + 1
-           ② 零扩展     0000 0000 0000 0000 1000 0000 0000 0001
-           得到 2¹⁵ + 1                                      ← 干扰项
-
-        两条路都"算对了"，差别只在 ==在多少位上取模==：2¹⁶ 还是 2³²。
-      ` },
+      caption: String.raw`口诀：==补位看原类型，解释看目标类型==。这两步的顺序是 C 标准规定死的，不是可以选的。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 298" role="img" aria-label="short 转 unsigned int：先扩展再解释，还是先解释再扩展">
+  <text class="cap" x="0" y="14">short si = −32767　（16 位补码）</text>
+  <g class="n r"><rect x="20" y="22" width="16" height="24" rx="3"/><text class="bt xs" x="28.0" y="34.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n k"><rect x="37" y="22" width="16" height="24" rx="3"/><text class="bt xs" x="45.0" y="34.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="54" y="22" width="16" height="24" rx="3"/><text class="bt xs" x="62.0" y="34.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="71" y="22" width="16" height="24" rx="3"/><text class="bt xs" x="79.0" y="34.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="93" y="22" width="16" height="24" rx="3"/><text class="bt xs" x="101.0" y="34.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="110" y="22" width="16" height="24" rx="3"/><text class="bt xs" x="118.0" y="34.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="127" y="22" width="16" height="24" rx="3"/><text class="bt xs" x="135.0" y="34.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="144" y="22" width="16" height="24" rx="3"/><text class="bt xs" x="152.0" y="34.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="166" y="22" width="16" height="24" rx="3"/><text class="bt xs" x="174.0" y="34.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="183" y="22" width="16" height="24" rx="3"/><text class="bt xs" x="191.0" y="34.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="200" y="22" width="16" height="24" rx="3"/><text class="bt xs" x="208.0" y="34.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="217" y="22" width="16" height="24" rx="3"/><text class="bt xs" x="225.0" y="34.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="239" y="22" width="16" height="24" rx="3"/><text class="bt xs" x="247.0" y="34.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="256" y="22" width="16" height="24" rx="3"/><text class="bt xs" x="264.0" y="34.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="273" y="22" width="16" height="24" rx="3"/><text class="bt xs" x="281.0" y="34.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="290" y="22" width="16" height="24" rx="3"/><text class="bt xs" x="298.0" y="34.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n g"><rect x="20" y="62" width="656" height="24" rx="6"/><text class="bt xs" x="348.0" y="74.0" text-anchor="middle" dominant-baseline="central">✅ 正确：先按原类型（有符号）扩展，再按目标类型（无符号）解释</text></g>
+  <g class="n g"><rect x="20" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="28.0" y="106.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n g"><rect x="37" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="45.0" y="106.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n g"><rect x="54" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="62.0" y="106.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n g"><rect x="71" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="79.0" y="106.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n g"><rect x="93" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="101.0" y="106.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n g"><rect x="110" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="118.0" y="106.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n g"><rect x="127" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="135.0" y="106.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n g"><rect x="144" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="152.0" y="106.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n g"><rect x="166" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="174.0" y="106.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n g"><rect x="183" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="191.0" y="106.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n g"><rect x="200" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="208.0" y="106.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n g"><rect x="217" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="225.0" y="106.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n g"><rect x="239" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="247.0" y="106.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n g"><rect x="256" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="264.0" y="106.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n g"><rect x="273" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="281.0" y="106.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n g"><rect x="290" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="298.0" y="106.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n k"><rect x="317" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="325.0" y="106.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n k"><rect x="334" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="342.0" y="106.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="351" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="359.0" y="106.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="368" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="376.0" y="106.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="390" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="398.0" y="106.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="407" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="415.0" y="106.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="424" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="432.0" y="106.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="441" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="449.0" y="106.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="463" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="471.0" y="106.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="480" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="488.0" y="106.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="497" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="505.0" y="106.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="514" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="522.0" y="106.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="536" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="544.0" y="106.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="553" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="561.0" y="106.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="570" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="578.0" y="106.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="587" y="94" width="16" height="24" rx="3"/><text class="bt xs" x="595.0" y="106.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <text class="lb" x="20" y="136">① 符号扩展：高位补 1　　② 当无符号读 = 2³² − 32767 = 2³² − 2¹⁵ + 1　← 答案</text>
+  <g class="n r"><rect x="20" y="152" width="656" height="24" rx="6"/><text class="bt xs" x="348.0" y="164.0" text-anchor="middle" dominant-baseline="central">❌ 反了：先在 16 位上按无符号解释，再补零扩展</text></g>
+  <g class="n m"><rect x="20" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="28.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="37" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="45.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="54" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="62.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="71" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="79.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="93" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="101.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="110" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="118.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="127" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="135.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="144" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="152.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="166" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="174.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="183" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="191.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="200" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="208.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="217" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="225.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="239" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="247.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="256" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="264.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="273" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="281.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n m"><rect x="290" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="298.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="317" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="325.0" y="196.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n k"><rect x="334" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="342.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="351" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="359.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="368" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="376.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="390" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="398.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="407" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="415.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="424" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="432.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="441" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="449.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="463" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="471.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="480" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="488.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="497" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="505.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="514" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="522.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="536" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="544.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="553" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="561.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="570" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="578.0" y="196.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="587" y="184" width="16" height="24" rx="3"/><text class="bt xs" x="595.0" y="196.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <text class="lb" x="20" y="226">① 当无符号读 = 2¹⁶ − 32767 = 32769　　② 零扩展 → 得到 2¹⁵ + 1　← 干扰项</text>
+  <g class="n a"><rect x="20" y="240" width="656" height="46" rx="8"/><text class="bt sm" x="348.0" y="253.0" text-anchor="middle" dominant-baseline="central">两条路都"算对了"，差别只在【在多少位上取模】</text><text class="bs" x="348.0" y="273.0" text-anchor="middle" dominant-baseline="central">2¹⁶ 还是 2³² —— 补位看原类型，解释看目标类型</text></g>
+</svg>
+` },
 
     { t: 'example',
       id: 'ex-short-unsigned',

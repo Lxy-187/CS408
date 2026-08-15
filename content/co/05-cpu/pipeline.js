@@ -129,24 +129,30 @@ KM.page({
       "流水线技术提高了 CPU 的吞吐率" —— ==对==。
     ` },
 
-    { t: 'code', id: 'pipeline-reg', title: '流水寄存器：段与段之间的"隔板"', lang: '',
+    { t: 'diagram', id: 'pipeline-reg', title: '流水寄存器：段与段之间的"隔板"',
       note: '没有它，第 2 条指令的取指结果会立刻冲掉第 1 条的',
-      c: String.raw`
-          IF  ┃  ID  ┃  EX  ┃ MEM  ┃  WB
-              ┃      ┃      ┃      ┃
-           IF/ID  ID/EX  EX/MEM MEM/WB
-              ┃      ┃      ┃      ┃
-              └─ 每个隔板都是一组寄存器，在时钟边沿把本段的结果锁存下来
-
-        隔板里存什么：
-          ① 数据    —— 指令本身、读出的寄存器值、ALU 结果、访存数据
-          ② 控制信号 —— 这条指令后续各段要用的信号，跟着它一起往下流
-                        （见 co/cpu/control 的"控制器被拆散了"）
-          ③ PC 相关 —— 分支目标地址、返回地址
-
-        ★ 流水寄存器让【每一段只需要关心自己这一拍】，
-          段与段之间不再有时序耦合 —— 这正是流水线能成立的物理基础。
-      ` },
+      caption: String.raw`流水寄存器让==每一段只需要关心自己这一拍==，段与段之间不再有时序耦合——这正是流水线能成立的物理基础。控制信号跟着数据一起往下流这件事，见[控制器被拆散了](#/co/cpu/control?at=pipeline-control)。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 306" role="img" aria-label="五个段之间的四个流水寄存器，以及隔板里存的三类东西">
+  <g class="n k"><rect x="20" y="24" width="104" height="44" rx="8"/><text class="bt sm" x="72.0" y="46.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n k"><rect x="156" y="24" width="104" height="44" rx="8"/><text class="bt sm" x="208.0" y="46.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <g class="n k"><rect x="292" y="24" width="104" height="44" rx="8"/><text class="bt sm" x="344.0" y="46.0" text-anchor="middle" dominant-baseline="central">EX</text></g>
+  <g class="n k"><rect x="428" y="24" width="104" height="44" rx="8"/><text class="bt sm" x="480.0" y="46.0" text-anchor="middle" dominant-baseline="central">MEM</text></g>
+  <g class="n k"><rect x="564" y="24" width="104" height="44" rx="8"/><text class="bt sm" x="616.0" y="46.0" text-anchor="middle" dominant-baseline="central">WB</text></g>
+  <g class="n a"><rect x="128" y="18" width="24" height="56" rx="4"/><text class="bt xs" x="140.0" y="46.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <text class="lb" x="140" y="88" text-anchor="middle">IF/ID</text>
+  <g class="n a"><rect x="264" y="18" width="24" height="56" rx="4"/><text class="bt xs" x="276.0" y="46.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <text class="lb" x="276" y="88" text-anchor="middle">ID/EX</text>
+  <g class="n a"><rect x="400" y="18" width="24" height="56" rx="4"/><text class="bt xs" x="412.0" y="46.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <text class="lb" x="412" y="88" text-anchor="middle">EX/MEM</text>
+  <g class="n a"><rect x="536" y="18" width="24" height="56" rx="4"/><text class="bt xs" x="548.0" y="46.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <text class="lb" x="548" y="88" text-anchor="middle">MEM/WB</text>
+  <text class="cap" x="0" y="118">每个隔板都是一组寄存器，在时钟边沿把本段的结果锁存下来</text>
+  <g class="n g"><rect x="20" y="132" width="656" height="46" rx="8"/><text class="bt sm" x="348.0" y="145.0" text-anchor="middle" dominant-baseline="central">① 数据</text><text class="bs" x="348.0" y="165.0" text-anchor="middle" dominant-baseline="central">指令本身、读出的寄存器值、ALU 结果、访存数据</text></g>
+  <g class="n g"><rect x="20" y="186" width="656" height="46" rx="8"/><text class="bt sm" x="348.0" y="199.0" text-anchor="middle" dominant-baseline="central">② 控制信号</text><text class="bs" x="348.0" y="219.0" text-anchor="middle" dominant-baseline="central">这条指令后续各段要用的信号，跟着它一起往下流</text></g>
+  <g class="n g"><rect x="20" y="240" width="656" height="46" rx="8"/><text class="bt sm" x="348.0" y="253.0" text-anchor="middle" dominant-baseline="central">③ PC 相关</text><text class="bs" x="348.0" y="273.0" text-anchor="middle" dominant-baseline="central">分支目标地址、返回地址</text></g>
+</svg>
+` },
 
     { t: 'key', id: 'five-stages', title: '经典五段与它们各自要做的事', c: String.raw`
       | 段 | 全称 | 干什么 | 用到的部件 |

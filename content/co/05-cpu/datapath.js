@@ -119,28 +119,34 @@ KM.page({
       ==看到"对齐"两个字，先算一句"低几位恒为 0"。==
     ` },
 
-    { t: 'code', id: 'align-bits', title: '对齐把地址的低位钉死成 0', lang: '',
-      c: String.raw`
-        4GB 按字节编址 → 完整字节地址 32 位
-        ┌──────────────────────────────────┬─────┐
-        │        高 30 位（第几个字）        │ 低2位│
-        └──────────────────────────────────┴─────┘
-                                              ↑
-                          指令按字边界对齐 ⇒ 这两位【恒为 00】
-
-        指令的合法起始地址：
-            0x00000000   ...0000 00
-            0x00000004   ...0001 00
-            0x00000008   ...0010 00
-            0x0000000C   ...0011 00
-                            ↑ 变化的只有高 30 位
-
-        所以 PC 只需要存高 30 位：
-            PC = 30 位     取指时右边补 00 → 32 位字节地址
-            PC+1 = 下一个【字】，不是下一个字节
-
-        ★ IR 装的是【指令内容】不是地址，和对齐无关，老老实实 32 位。
-      ` },
+    { t: 'diagram', id: 'align-bits', title: '对齐把地址的低位钉死成 0',
+      note: '低两位恒为 0，等于白存 —— 于是 PC 少两位',
+      caption: String.raw`==这两位不是"可以不存"，是"存了也永远一样"==。所以 $\texttt{PC}$ 数的是**第几个字**，$\texttt{PC}+1$ 走的是一个**字**而不是一个字节。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 288" role="img" aria-label="字节地址的高 30 位与低 2 位，以及 PC 为什么只要 30 位">
+  <text class="cap" x="0" y="14">4GB 按字节编址 → 完整的字节地址 32 位</text>
+  <g class="n k"><rect x="20" y="26" width="500" height="40" rx="8"/><text class="bt sm" x="270.0" y="46.0" text-anchor="middle" dominant-baseline="central">高 30 位：第几个「字」</text></g>
+  <g class="n r"><rect x="526" y="26" width="150" height="40" rx="8"/><text class="bt sm" x="601.0" y="46.0" text-anchor="middle" dominant-baseline="central">低 2 位</text></g>
+  <text class="lb mono" x="20" y="82">位 31</text>
+  <text class="lb mono" x="520" y="82" text-anchor="end">位 2</text>
+  <text class="lb mono" x="676" y="82" text-anchor="end">1  0</text>
+  <path class="ar" d="M601,112 V70"/>
+  <text class="cap" x="676" y="130" text-anchor="end">指令按字边界对齐 ⇒ 这两位恒为 00</text>
+  <text class="cap" x="0" y="168">于是合法的指令起始地址只能是：</text>
+  <text class="lb mono" x="20" y="188">0x00000000</text>
+  <text class="lb mono" x="130" y="188">…0000 00</text>
+  <text class="lb mono" x="20" y="210">0x00000004</text>
+  <text class="lb mono" x="130" y="210">…0001 00</text>
+  <text class="lb mono" x="20" y="232">0x00000008</text>
+  <text class="lb mono" x="130" y="232">…0010 00</text>
+  <text class="lb mono" x="20" y="254">0x0000000C</text>
+  <text class="lb mono" x="130" y="254">…0011 00</text>
+  <path class="gd" d="M196,186 V264"/>
+  <text class="lb" x="206" y="232">变的只有高 30 位</text>
+  <g class="n k"><rect x="360" y="188" width="316" height="40" rx="8"/><text class="bt sm" x="518.0" y="198.0" text-anchor="middle" dominant-baseline="central">PC 只需要 30 位</text><text class="bs" x="518.0" y="218.0" text-anchor="middle" dominant-baseline="central">取指时右边补 00 还原成 32 位字节地址</text></g>
+  <g class="n m"><rect x="360" y="234" width="316" height="40" rx="8"/><text class="bt sm" x="518.0" y="244.0" text-anchor="middle" dominant-baseline="central">IR 老老实实 32 位</text><text class="bs" x="518.0" y="264.0" text-anchor="middle" dominant-baseline="central">它装的是指令内容，和地址对齐无关</text></g>
+</svg>
+` },
 
     { t: 'example', id: 'ex-pc-ir-bits',
       title: 'PC 和 IR 至少各要多少位',
@@ -236,33 +242,41 @@ KM.page({
         ['**专用数据通路**', '==部件之间直接连线==，不共享总线', '受连线限制，==并行度最高==', '==最高==', '==最多=='],
       ] },
 
-    { t: 'code', id: 'single-bus-fig', title: '★ 单总线数据通路（后面所有微操作序列都基于这张图）', lang: '',
-      c: String.raw`
-              ┌─────────────────── CPU 内部总线 ───────────────────┐
-              │        │        │        │        │       │       │
-           ┌──┴──┐  ┌──┴──┐  ┌──┴──┐  ┌──┴──┐  ┌──┴──┐ ┌──┴──┐    │
-           │ PC  │  │ IR  │  │ R0  │  │ R1  │  │ MAR │ │ MDR │    │
-           └──┬──┘  └─────┘  └─────┘  └─────┘  └──┬──┘ └──┬──┘    │
-              │                                   │       │       │
-              │  每个寄存器有两个控制信号：           ▼       ▼       │
-              │    Xout：把 X 的值【送上】总线      地址总线  数据总线  │
-              │    Xin ：把总线的值【打入】X                          │
-              │                                                     │
-              │        ┌──────┐                                     │
-              └───────▶│  Y   │（暂存器，接 ALU 的 A 端）              │
-                       └──┬───┘                                     │
-                          ▼                                         │
-                     ┌─────────┐                                    │
-                     │   ALU   │◀──── B 端直接接总线 ─────────────────┘
-                     └────┬────┘
-                          ▼
-                       ┌──────┐
-                       │  Z   │（暂存器，存运算结果）──▶ 回到总线
-                       └──────┘
-
-        ★ 一拍之内，总线上【只能有一个】Xout 有效，
-          但可以有【多个】Xin 同时有效（一个值同时打入几个寄存器）。
-      ` },
+    { t: 'diagram', id: 'single-bus-fig', title: '★ 单总线数据通路（后面所有微操作序列都基于这张图）',
+      note: '每个寄存器两个信号：Xout 送上总线，Xin 从总线打入',
+      caption: String.raw`==一拍之内，总线上只能有一个 $\texttt{Xout}$ 有效==（否则两个值撞在一起），但==可以有多个 $\texttt{Xin}$ 同时有效==（一个值同时打进几个寄存器）。$\texttt{Y}$ 和 $\texttt{Z}$ 为什么非要有，见[下一块](#/co/cpu/datapath?at=why-yz)。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 348" role="img" aria-label="单总线数据通路：寄存器挂在内部总线上，ALU 两端分别接 Y 与总线">
+  <g class="n k"><rect x="20" y="26" width="670" height="24" rx="6"/><text class="bt sm" x="355.0" y="38.0" text-anchor="middle" dominant-baseline="central">CPU 内部总线</text></g>
+  <g class="n k"><rect x="60" y="78" width="88" height="36" rx="8"/><text class="bt sm" x="104.0" y="96.0" text-anchor="middle" dominant-baseline="central">PC</text></g>
+  <path class="ar plain" d="M104,50 V78"/>
+  <g class="n k"><rect x="160" y="78" width="88" height="36" rx="8"/><text class="bt sm" x="204.0" y="96.0" text-anchor="middle" dominant-baseline="central">IR</text></g>
+  <path class="ar plain" d="M204,50 V78"/>
+  <g class="n k"><rect x="260" y="78" width="88" height="36" rx="8"/><text class="bt sm" x="304.0" y="96.0" text-anchor="middle" dominant-baseline="central">R0</text></g>
+  <path class="ar plain" d="M304,50 V78"/>
+  <g class="n k"><rect x="360" y="78" width="88" height="36" rx="8"/><text class="bt sm" x="404.0" y="96.0" text-anchor="middle" dominant-baseline="central">R1</text></g>
+  <path class="ar plain" d="M404,50 V78"/>
+  <g class="n k"><rect x="460" y="78" width="88" height="36" rx="8"/><text class="bt sm" x="504.0" y="96.0" text-anchor="middle" dominant-baseline="central">MAR</text></g>
+  <path class="ar plain" d="M504,50 V78"/>
+  <g class="n k"><rect x="560" y="78" width="88" height="36" rx="8"/><text class="bt sm" x="604.0" y="96.0" text-anchor="middle" dominant-baseline="central">MDR</text></g>
+  <path class="ar plain" d="M604,50 V78"/>
+  <path class="ar" d="M504,114 V142"/>
+  <text class="lb" x="504" y="160" text-anchor="middle">地址总线</text>
+  <path class="ar" d="M604,114 V142"/>
+  <text class="lb" x="604" y="160" text-anchor="middle">数据总线</text>
+  <path class="ar plain" d="M36,50 V252"/>
+  <path class="ar" d="M36,190 H56"/>
+  <path class="ar" d="M36,252 H56"/>
+  <g class="n g"><rect x="60" y="172" width="130" height="36" rx="8"/><text class="bt sm" x="125.0" y="180.0" text-anchor="middle" dominant-baseline="central">Y</text><text class="bs" x="125.0" y="200.0" text-anchor="middle" dominant-baseline="central">A 端暂存器</text></g>
+  <path class="ar" d="M125,208 V230"/>
+  <g class="n a"><rect x="60" y="234" width="130" height="36" rx="8"/><text class="bt sm" x="125.0" y="252.0" text-anchor="middle" dominant-baseline="central">ALU</text></g>
+  <text class="lb" x="200" y="248">B 端直接取总线上的值</text>
+  <path class="ar" d="M125,270 V292"/>
+  <g class="n g"><rect x="60" y="296" width="130" height="36" rx="8"/><text class="bt sm" x="125.0" y="304.0" text-anchor="middle" dominant-baseline="central">Z</text><text class="bs" x="125.0" y="324.0" text-anchor="middle" dominant-baseline="central">结果暂存器</text></g>
+  <path class="ar" d="M190,314 H670 V54"/>
+  <text class="lb" x="420" y="330" text-anchor="middle">Z 的值再送回总线</text>
+</svg>
+` },
 
     { t: 'key', id: 'why-yz', title: '★★ 为什么单总线里非要有 Y 和 Z（理解这个，单总线就通了）', c: String.raw`
       ALU 是==组合逻辑==，它的两个输入端==必须同时有效==才能算出结果。
@@ -346,55 +360,85 @@ KM.page({
       不要求写控制信号。四个周期里==前两个和最后一个是固定的，只有执行周期因指令而异==。
     ` },
 
-    { t: 'code', id: 'fetch-flow', title: '① 取指周期的数据流（所有指令都一样）', lang: '',
-      c: String.raw`
-        PC ──▶ MAR ──▶ 地址总线 ──▶ 主存
-                                     │
-        控制器发出【读】命令 ──────────┤
-                                     ▼
-        IR ◀── MDR ◀── 数据总线 ◀── 主存读出的指令
+    { t: 'diagram', id: 'fetch-flow', title: '① 取指周期的数据流（所有指令都一样）',
+      note: '上行送地址，下行取指令回来',
+      caption: String.raw`==取指周期对所有指令都一模一样==，所以它是硬布线设计里唯一"无条件"的一段。$(\texttt{PC})+1$ 安排在 $\texttt{T1}$，是因为那一拍总线空着。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 240" role="img" aria-label="数据流与微操作序列">
+  <g class="n k"><rect x="20" y="22" width="130" height="38" rx="8"/><text class="bt sm" x="85.0" y="41.0" text-anchor="middle" dominant-baseline="central">PC</text></g>
+  <g class="n k"><rect x="190" y="22" width="130" height="38" rx="8"/><text class="bt sm" x="255.0" y="41.0" text-anchor="middle" dominant-baseline="central">MAR</text></g>
+  <path class="ar" d="M154,41.0 H186"/>
+  <g class="n m"><rect x="360" y="22" width="130" height="38" rx="8"/><text class="bt sm" x="425.0" y="41.0" text-anchor="middle" dominant-baseline="central">地址总线</text></g>
+  <path class="ar" d="M324,41.0 H356"/>
+  <g class="n g"><rect x="530" y="22" width="130" height="38" rx="8"/><text class="bt sm" x="595.0" y="41.0" text-anchor="middle" dominant-baseline="central">主存</text></g>
+  <path class="ar" d="M494,41.0 H526"/>
+  <g class="n g"><rect x="20" y="92" width="130" height="38" rx="8"/><text class="bt sm" x="85.0" y="111.0" text-anchor="middle" dominant-baseline="central">读出的指令</text></g>
+  <g class="n m"><rect x="190" y="92" width="130" height="38" rx="8"/><text class="bt sm" x="255.0" y="111.0" text-anchor="middle" dominant-baseline="central">数据总线</text></g>
+  <path class="ar" d="M186,111.0 H154"/>
+  <g class="n k"><rect x="360" y="92" width="130" height="38" rx="8"/><text class="bt sm" x="425.0" y="111.0" text-anchor="middle" dominant-baseline="central">MDR</text></g>
+  <path class="ar" d="M356,111.0 H324"/>
+  <g class="n k"><rect x="530" y="92" width="130" height="38" rx="8"/><text class="bt sm" x="595.0" y="111.0" text-anchor="middle" dominant-baseline="central">IR</text></g>
+  <path class="ar" d="M526,111.0 H494"/>
+  <text class="lb" x="560" y="82">控制器发出【读】命令</text>
+  <g class="n a"><rect x="20" y="158" width="210" height="46" rx="8"/><text class="bt sm" x="125.0" y="171.0" text-anchor="middle" dominant-baseline="central">T0</text><text class="bs" x="125.0" y="191.0" text-anchor="middle" dominant-baseline="central">PCout, MARin, Read</text></g>
+  <g class="n a"><rect x="246" y="158" width="210" height="46" rx="8"/><text class="bt sm" x="351.0" y="171.0" text-anchor="middle" dominant-baseline="central">T1</text><text class="bs" x="351.0" y="191.0" text-anchor="middle" dominant-baseline="central">MDRin, (PC)+1→PC</text></g>
+  <g class="n a"><rect x="472" y="158" width="210" height="46" rx="8"/><text class="bt sm" x="577.0" y="171.0" text-anchor="middle" dominant-baseline="central">T2</text><text class="bs" x="577.0" y="191.0" text-anchor="middle" dominant-baseline="central">MDRout, IRin</text></g>
+  <text class="cap" x="0" y="226">最后 OP(IR) 送控制器译码，决定接下来往哪走</text>
+</svg>
+` },
 
-        同时：(PC) + 1 → PC
-        最后：OP(IR) → 控制器（译码，决定接下来怎么走）
+    { t: 'diagram', id: 'ind-flow', title: '② 间址周期的数据流（只有间接寻址才有）',
+      note: '读回来的不是操作数，是操作数的地址',
+      caption: String.raw`==间址周期读出来的是"地址"不是"数据"==，这一条几乎每年都以某种形式出现。它被送回 $\texttt{IR}$ 的地址字段（或直接送 $\texttt{MAR}$），供执行周期使用。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 240" role="img" aria-label="数据流与微操作序列">
+  <g class="n k"><rect x="20" y="22" width="130" height="38" rx="8"/><text class="bt sm" x="85.0" y="41.0" text-anchor="middle" dominant-baseline="central">Ad(IR)</text></g>
+  <g class="n k"><rect x="190" y="22" width="130" height="38" rx="8"/><text class="bt sm" x="255.0" y="41.0" text-anchor="middle" dominant-baseline="central">MAR</text></g>
+  <path class="ar" d="M154,41.0 H186"/>
+  <g class="n m"><rect x="360" y="22" width="130" height="38" rx="8"/><text class="bt sm" x="425.0" y="41.0" text-anchor="middle" dominant-baseline="central">地址总线</text></g>
+  <path class="ar" d="M324,41.0 H356"/>
+  <g class="n g"><rect x="530" y="22" width="130" height="38" rx="8"/><text class="bt sm" x="595.0" y="41.0" text-anchor="middle" dominant-baseline="central">主存</text></g>
+  <path class="ar" d="M494,41.0 H526"/>
+  <g class="n g"><rect x="20" y="92" width="130" height="38" rx="8"/><text class="bt sm" x="85.0" y="111.0" text-anchor="middle" dominant-baseline="central">读出的有效地址</text></g>
+  <g class="n m"><rect x="190" y="92" width="130" height="38" rx="8"/><text class="bt sm" x="255.0" y="111.0" text-anchor="middle" dominant-baseline="central">数据总线</text></g>
+  <path class="ar" d="M186,111.0 H154"/>
+  <g class="n k"><rect x="360" y="92" width="130" height="38" rx="8"/><text class="bt sm" x="425.0" y="111.0" text-anchor="middle" dominant-baseline="central">MDR</text></g>
+  <path class="ar" d="M356,111.0 H324"/>
+  <g class="n k"><rect x="530" y="92" width="130" height="38" rx="8"/><text class="bt sm" x="595.0" y="111.0" text-anchor="middle" dominant-baseline="central">Ad(IR)</text></g>
+  <path class="ar" d="M526,111.0 H494"/>
+  <text class="lb" x="560" y="82">控制器发出【读】命令</text>
+  <g class="n a"><rect x="20" y="158" width="210" height="46" rx="8"/><text class="bt sm" x="125.0" y="171.0" text-anchor="middle" dominant-baseline="central">T0</text><text class="bs" x="125.0" y="191.0" text-anchor="middle" dominant-baseline="central">IRout(Ad), MARin, Read</text></g>
+  <g class="n a"><rect x="246" y="158" width="210" height="46" rx="8"/><text class="bt sm" x="351.0" y="171.0" text-anchor="middle" dominant-baseline="central">T1</text><text class="bs" x="351.0" y="191.0" text-anchor="middle" dominant-baseline="central">MDRin</text></g>
+  <g class="n a"><rect x="472" y="158" width="210" height="46" rx="8"/><text class="bt sm" x="577.0" y="171.0" text-anchor="middle" dominant-baseline="central">T2</text><text class="bs" x="577.0" y="191.0" text-anchor="middle" dominant-baseline="central">MDRout, IRin(Ad)</text></g>
+  <text class="cap" x="0" y="226">T2 用有效地址覆盖掉原来的形式地址</text>
+</svg>
+` },
 
-        微操作序列：
-          T0:  PCout, MARin, Read
-          T1:  MDRin, PC+1
-          T2:  MDRout, IRin
-      ` },
-
-    { t: 'code', id: 'ind-flow', title: '② 间址周期的数据流（只有间接寻址才有）', lang: '',
-      c: String.raw`
-        Ad(IR) ──▶ MAR ──▶ 地址总线 ──▶ 主存
-                                        │
-        控制器发出【读】命令 ─────────────┤
-                                        ▼
-        Ad(IR) ◀── MDR ◀── 数据总线 ◀── 读出的【有效地址】
-
-        ★ 间址周期读出来的不是操作数，是【操作数的地址】。
-          它被送回 IR 的地址字段（或直接送 MAR），供执行周期使用。
-
-        微操作序列：
-          T0:  IRout(Ad), MARin, Read
-          T1:  MDRin
-          T2:  MDRout, IRin(Ad)      ← 用有效地址覆盖原来的形式地址
-      ` },
-
-    { t: 'code', id: 'int-flow', title: '④ 中断周期的数据流（写，不是读）', lang: '',
+    { t: 'diagram', id: 'int-flow', title: '④ 中断周期的数据流（写，不是读）',
       note: '这一段就是中断隐指令，详见 co/cpu/exception',
-      c: String.raw`
-        SP-1 → SP → MAR ──▶ 地址总线 ──▶ 主存
-                                          ▲
-        控制器发出【写】命令 ───────────────┤
-                                          │
-        PC ──▶ MDR ──▶ 数据总线 ──────────┘   （把断点写进栈）
-
-        然后：向量地址 → PC        （引出中断服务程序）
-              0 → EINT            （关中断）
-
-        ★ 四个周期里【只有中断周期是写主存】，其余都是读。
-          这一条能直接判掉一批选择题。
-      ` },
+      caption: String.raw`注意箭头方向：上下两行==都是从 CPU 往主存去==。完整的响应流程见[异常与中断机制](#/co/cpu/exception?at=hidden-three)。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 240" role="img" aria-label="中断周期的数据流：把断点写进栈，再把向量地址送入 PC">
+  <g class="n k"><rect x="20" y="22" width="130" height="38" rx="8"/><text class="bt sm" x="85.0" y="41.0" text-anchor="middle" dominant-baseline="central">SP-1→SP</text></g>
+  <g class="n k"><rect x="190" y="22" width="130" height="38" rx="8"/><text class="bt sm" x="255.0" y="41.0" text-anchor="middle" dominant-baseline="central">MAR</text></g>
+  <path class="ar" d="M154,41.0 H186"/>
+  <g class="n m"><rect x="360" y="22" width="130" height="38" rx="8"/><text class="bt sm" x="425.0" y="41.0" text-anchor="middle" dominant-baseline="central">地址总线</text></g>
+  <path class="ar" d="M324,41.0 H356"/>
+  <g class="n g"><rect x="530" y="22" width="130" height="38" rx="8"/><text class="bt sm" x="595.0" y="41.0" text-anchor="middle" dominant-baseline="central">主存</text></g>
+  <path class="ar" d="M494,41.0 H526"/>
+  <g class="n k"><rect x="20" y="92" width="130" height="38" rx="8"/><text class="bt sm" x="85.0" y="111.0" text-anchor="middle" dominant-baseline="central">PC</text></g>
+  <g class="n k"><rect x="190" y="92" width="130" height="38" rx="8"/><text class="bt sm" x="255.0" y="111.0" text-anchor="middle" dominant-baseline="central">MDR</text></g>
+  <path class="ar" d="M154,111.0 H186"/>
+  <g class="n m"><rect x="360" y="92" width="130" height="38" rx="8"/><text class="bt sm" x="425.0" y="111.0" text-anchor="middle" dominant-baseline="central">数据总线</text></g>
+  <path class="ar" d="M324,111.0 H356"/>
+  <g class="n g"><rect x="530" y="92" width="130" height="38" rx="8"/><text class="bt sm" x="595.0" y="111.0" text-anchor="middle" dominant-baseline="central">断点写进栈</text></g>
+  <path class="ar" d="M494,111.0 H526"/>
+  <text class="lb" x="560" y="82">控制器发出【写】命令</text>
+  <g class="n p"><rect x="20" y="158" width="320" height="46" rx="8"/><text class="bt sm" x="180.0" y="171.0" text-anchor="middle" dominant-baseline="central">向量地址 → PC</text><text class="bs" x="180.0" y="191.0" text-anchor="middle" dominant-baseline="central">引出中断服务程序</text></g>
+  <g class="n p"><rect x="356" y="158" width="320" height="46" rx="8"/><text class="bt sm" x="516.0" y="171.0" text-anchor="middle" dominant-baseline="central">0 → EINT</text><text class="bs" x="516.0" y="191.0" text-anchor="middle" dominant-baseline="central">关中断</text></g>
+  <text class="cap" x="0" y="226">四个周期里只有中断周期是【写】主存，其余都是读 —— 这条能直接判掉一批选择题</text>
+</svg>
+` },
 
     { t: 'key', id: 'exec-flow', title: '③ 执行周期的数据流：唯一没有统一答案的一个', c: String.raw`
       ==执行周期的数据流完全取决于指令==，这正是"指令系统"和"数据通路"的接缝。

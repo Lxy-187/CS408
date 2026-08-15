@@ -29,18 +29,34 @@ KM.page({
       但朴素算法把这个信息丢掉、退回去重新比一遍。
     ` },
 
-    { t: 'code', id: 'naive-illustration', title: '失配瞬间，我们其实知道很多', note: '大写表示已匹配段', lang: '',
-      c: String.raw`
-        主串 S:  ... a b a b a X ...
-                     └─────┘ ↑
-                     已匹配   在这里失配 (i)
-
-        模式 T:      a b a b a a
-                     └─────┘ ↑
-                              j
-
-        已匹配段 "ababa" 既属于主串、也属于模式串前缀 —— 信息全在模式串里
-      ` },
+    { t: 'diagram', id: 'naive-illustration', title: '失配瞬间，我们其实知道很多',
+      note: '绿 = 已匹配段，红 = 失配的那一对',
+      caption: String.raw`==KMP 的全部出发点就是这张图==：失配时，已匹配的那段内容是已知的，而它恰好是模式串的一个前缀 —— 于是滑动距离可以==只由模式串预先算出来==，与主串无关。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 268" role="img" aria-label="朴素匹配失配的瞬间：已匹配段既在主串里也是模式串前缀">
+  <text class="cap" x="0" y="14">主串 S</text>
+  <g class="n m"><rect x="60" y="24" width="40" height="36" rx="4"/><text class="bt sm" x="80.0" y="42.0" text-anchor="middle" dominant-baseline="central">…</text></g>
+  <g class="n g"><rect x="104" y="24" width="40" height="36" rx="4"/><text class="bt sm" x="124.0" y="42.0" text-anchor="middle" dominant-baseline="central">a</text></g>
+  <g class="n g"><rect x="148" y="24" width="40" height="36" rx="4"/><text class="bt sm" x="168.0" y="42.0" text-anchor="middle" dominant-baseline="central">b</text></g>
+  <g class="n g"><rect x="192" y="24" width="40" height="36" rx="4"/><text class="bt sm" x="212.0" y="42.0" text-anchor="middle" dominant-baseline="central">a</text></g>
+  <g class="n g"><rect x="236" y="24" width="40" height="36" rx="4"/><text class="bt sm" x="256.0" y="42.0" text-anchor="middle" dominant-baseline="central">b</text></g>
+  <g class="n g"><rect x="280" y="24" width="40" height="36" rx="4"/><text class="bt sm" x="300.0" y="42.0" text-anchor="middle" dominant-baseline="central">a</text></g>
+  <g class="n r"><rect x="324" y="24" width="40" height="36" rx="4"/><text class="bt sm" x="344.0" y="42.0" text-anchor="middle" dominant-baseline="central">X</text></g>
+  <g class="n m"><rect x="368" y="24" width="40" height="36" rx="4"/><text class="bt sm" x="388.0" y="42.0" text-anchor="middle" dominant-baseline="central">…</text></g>
+  <text class="lb" x="412" y="78" text-anchor="middle">在这里失配（i）</text>
+  <path class="ar" d="M324,74 V64"/>
+  <text class="cap" x="0" y="116">模式 T</text>
+  <g class="n g"><rect x="104" y="126" width="40" height="36" rx="4"/><text class="bt sm" x="124.0" y="144.0" text-anchor="middle" dominant-baseline="central">a</text></g>
+  <g class="n g"><rect x="148" y="126" width="40" height="36" rx="4"/><text class="bt sm" x="168.0" y="144.0" text-anchor="middle" dominant-baseline="central">b</text></g>
+  <g class="n g"><rect x="192" y="126" width="40" height="36" rx="4"/><text class="bt sm" x="212.0" y="144.0" text-anchor="middle" dominant-baseline="central">a</text></g>
+  <g class="n g"><rect x="236" y="126" width="40" height="36" rx="4"/><text class="bt sm" x="256.0" y="144.0" text-anchor="middle" dominant-baseline="central">b</text></g>
+  <g class="n g"><rect x="280" y="126" width="40" height="36" rx="4"/><text class="bt sm" x="300.0" y="144.0" text-anchor="middle" dominant-baseline="central">a</text></g>
+  <g class="n r"><rect x="324" y="126" width="40" height="36" rx="4"/><text class="bt sm" x="344.0" y="144.0" text-anchor="middle" dominant-baseline="central">a</text></g>
+  <path class="ar" d="M324,176 V166"/>
+  <text class="lb" x="330" y="186">j</text>
+  <g class="n g"><rect x="20" y="210" width="656" height="46" rx="8"/><text class="bt sm" x="348.0" y="223.0" text-anchor="middle" dominant-baseline="central">绿色这段 “ababa” 既属于主串、也属于模式串的前缀</text><text class="bs" x="348.0" y="243.0" text-anchor="middle" dominant-baseline="central">所以"下一步该往右滑多远"这件事，信息全在模式串自己身上</text></g>
+</svg>
+` },
 
     /* ------------------------------------------------------------------ */
     { t: 'h', id: 'core', c: '二、核心洞察：$i$ 永不回溯' },

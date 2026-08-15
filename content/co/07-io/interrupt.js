@@ -17,33 +17,44 @@ KM.page({
     /* ================================================================== */
     { t: 'h', id: 'timeline', c: '一、一次完整的程序中断方式 I/O' },
 
-    { t: 'code', id: 'full-timeline', title: '从启动设备到数据到手，时间轴上发生了什么', lang: '',
-      c: String.raw`
-        CPU 侧                                          设备侧
-        ────────────────────────────────────────────────────────────────
-        执行用户程序
-          │
-          ├─ 执行 I/O 指令，启动设备 ──────────────────▶ 设备开始工作
-          │                                              （很慢）
-          ├─ 继续执行用户程序 ─┐                          ║
-          │   （这就是并行）    │                          ║
-          │                    │                          ║
-          │                    │        ◀─ 中断请求 ───── 数据准备好了
-          │  ┌─────────────────┘                          ║
-          │  │ ① 当前指令执行完（必须！）
-          │  │ ② 判优：这个请求是不是当前最该响应的
-          │  │ ③ 中断隐指令：关中断 / 存断点 / 送入口地址   ← 硬件
-          │  ▼
-        中断服务程序                                       ║
-          │ ④ 保护现场（PUSH 通用寄存器）                   ← 软件
-          │ ⑤ 开中断（只有多重中断才要）
-          │ ⑥ 设备服务：真正读走那 1 个字节 ◀════════════ 数据寄存器
-          │ ⑦ 关中断
-          │ ⑧ 恢复现场（POP）
-          │ ⑨ IRET
-          ▼
-        回到用户程序断点处继续
-      ` },
+    { t: 'diagram', id: 'full-timeline', title: '从启动设备到数据到手，时间轴上发生了什么',
+      note: '琥珀 = CPU 在跑用户程序，绿 = 设备侧，蓝 = 硬件，紫 = 软件',
+      caption: String.raw`==这张图的分界线在③和④之间==：③ 及以前全是硬件自动做的（中断隐指令），④ 及以后全是中断服务程序（软件）做的。考试问"这一步由硬件还是软件完成"，看的就是这条线。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 352" role="img" aria-label="从启动设备到数据到手：CPU 侧、设备侧、硬件与软件各做了什么">
+  <text class="cap" x="0" y="14">CPU 侧</text>
+  <g class="n a"><rect x="20" y="24" width="210" height="44" rx="8"/><text class="bt sm" x="125.0" y="46.0" text-anchor="middle" dominant-baseline="central">执行用户程序</text></g>
+  <g class="n a"><rect x="243" y="24" width="210" height="44" rx="8"/><text class="bt sm" x="348.0" y="46.0" text-anchor="middle" dominant-baseline="central">执行 I/O 指令启动设备</text></g>
+  <path class="ar" d="M234,46.0 H239"/>
+  <g class="n a"><rect x="466" y="24" width="210" height="44" rx="8"/><text class="bt sm" x="571.0" y="46.0" text-anchor="middle" dominant-baseline="central">继续执行用户程序</text></g>
+  <path class="ar" d="M457,46.0 H462"/>
+  <text class="cap" x="0" y="96">设备侧</text>
+  <g class="n g"><rect x="243" y="106" width="210" height="40" rx="8"/><text class="bt sm" x="348.0" y="126.0" text-anchor="middle" dominant-baseline="central">设备开始工作（很慢）</text></g>
+  <g class="n g"><rect x="466" y="106" width="210" height="40" rx="8"/><text class="bt sm" x="571.0" y="126.0" text-anchor="middle" dominant-baseline="central">数据好了，发中断请求</text></g>
+  <path class="ar" d="M348,68 V102"/>
+  <path class="ar" d="M571,146 V180"/>
+  <text class="cap" x="0" y="176">硬件</text>
+  <g class="n k"><rect x="20" y="184" width="210" height="44" rx="8"/><text class="bt sm" x="125.0" y="206.0" text-anchor="middle" dominant-baseline="central">① 当前指令执行完</text></g>
+  <g class="n k"><rect x="243" y="184" width="210" height="44" rx="8"/><text class="bt sm" x="348.0" y="206.0" text-anchor="middle" dominant-baseline="central">② 判优</text></g>
+  <path class="ar" d="M234,206.0 H239"/>
+  <g class="n k"><rect x="466" y="184" width="210" height="44" rx="8"/><text class="bt sm" x="571.0" y="206.0" text-anchor="middle" dominant-baseline="central">③ 中断隐指令</text></g>
+  <path class="ar" d="M457,206.0 H462"/>
+  <text class="lb" x="466" y="244">关中断 / 存断点 / 送入口地址</text>
+  <text class="cap" x="0" y="268">软件</text>
+  <g class="n p"><rect x="20" y="276" width="102" height="40" rx="4"/><text class="bt xs" x="71.0" y="296.0" text-anchor="middle" dominant-baseline="central">④ 保护现场</text></g>
+  <g class="n p"><rect x="130" y="276" width="102" height="40" rx="4"/><text class="bt xs" x="181.0" y="296.0" text-anchor="middle" dominant-baseline="central">⑤ 开中断</text></g>
+  <path class="ar" d="M122,296 H127"/>
+  <g class="n p"><rect x="240" y="276" width="102" height="40" rx="4"/><text class="bt xs" x="291.0" y="296.0" text-anchor="middle" dominant-baseline="central">⑥ 设备服务</text></g>
+  <path class="ar" d="M232,296 H237"/>
+  <g class="n p"><rect x="350" y="276" width="102" height="40" rx="4"/><text class="bt xs" x="401.0" y="296.0" text-anchor="middle" dominant-baseline="central">⑦ 关中断</text></g>
+  <path class="ar" d="M342,296 H347"/>
+  <g class="n p"><rect x="460" y="276" width="102" height="40" rx="4"/><text class="bt xs" x="511.0" y="296.0" text-anchor="middle" dominant-baseline="central">⑧ 恢复现场</text></g>
+  <path class="ar" d="M452,296 H457"/>
+  <g class="n p"><rect x="570" y="276" width="102" height="40" rx="4"/><text class="bt xs" x="621.0" y="296.0" text-anchor="middle" dominant-baseline="central">⑨ IRET</text></g>
+  <path class="ar" d="M562,296 H567"/>
+  <text class="cap" x="0" y="340">⑨ 之后回到用户程序的断点处继续 —— 中间这一段用户程序完全不知道发生过什么</text>
+</svg>
+` },
 
     { t: 'key', id: 'four-stages', title: '四个阶段与它们的分界线', c: String.raw`
       | 阶段 | 干什么 | ==由谁完成== |
@@ -108,23 +119,26 @@ KM.page({
         ['硬件成本', '高', '低'],
       ] },
 
-    { t: 'code', id: 'daisy-chain', title: '链式排队器（菊花链）：优先级就是"离 CPU 多远"', lang: '',
-      note: '谁在链条上游谁优先 —— 上游一旦截住信号，下游就永远收不到批准',
-      c: String.raw`
-                 中断批准信号 INTA
-        CPU ──────────┬──────────┬──────────┬──────────▶
-                      │          │          │
-                   ┌──┴──┐    ┌──┴──┐    ┌──┴──┐
-                   │设备1 │    │设备2 │    │设备3 │
-                   └──┬──┘    └──┬──┘    └──┬──┘
-                      │          │          │
-                      └──────────┴──────────┴─────▶ 中断请求 INTR（公共线）
-
-        设备 1 有请求时：截住 INTA 自己用，设备 2、3 收不到 → 优先级 1 > 2 > 3
-        设备 1 无请求时：把 INTA 原样传给设备 2
-
-        ★ 优先级 = 物理位置，==要改优先级只能重新接线==
-      ` },
+    { t: 'diagram', id: 'daisy-chain', title: '链式排队器（菊花链）：优先级就是"离 CPU 多远"',
+      note: '上游一旦截住信号，下游就永远收不到批准',
+      caption: String.raw`==这和[总线的链式查询](#/co/bus/bus-timing?at=chain)是同一个手法==，只是信号换了名字（BG → INTA）。硬件排队器改不了优先级，所以才需要==屏蔽字==这个软件手段。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 274" role="img" aria-label="链式排队器：中断批准信号沿链传递，上游设备优先">
+  <g class="n p"><rect x="20" y="56" width="130" height="48" rx="8"/><text class="bt sm" x="85.0" y="80.0" text-anchor="middle" dominant-baseline="central">CPU</text></g>
+  <g class="n k"><rect x="250" y="56" width="110" height="48" rx="8"/><text class="bt sm" x="305.0" y="80.0" text-anchor="middle" dominant-baseline="central">设备 1</text></g>
+  <g class="n k"><rect x="390" y="56" width="110" height="48" rx="8"/><text class="bt sm" x="445.0" y="80.0" text-anchor="middle" dominant-baseline="central">设备 2</text></g>
+  <g class="n k"><rect x="530" y="56" width="110" height="48" rx="8"/><text class="bt sm" x="585.0" y="80.0" text-anchor="middle" dominant-baseline="central">设备 3</text></g>
+  <path class="ar" d="M150,70 H246"/>
+  <path class="ar" d="M360,70 H386"/>
+  <path class="ar" d="M500,70 H526"/>
+  <text class="cap" x="250" y="40">INTA 中断批准信号，沿链条一个一个往下传</text>
+  <path class="ar plain" d="M85,104 V142 H660 V104"/>
+  <text class="lb" x="375" y="158" text-anchor="middle">INTR 中断请求（公共线）</text>
+  <g class="n g"><rect x="20" y="176" width="320" height="62" rx="8"/><text class="bt sm" x="180.0" y="197.0" text-anchor="middle" dominant-baseline="central">设备 1 有请求</text><text class="bs" x="180.0" y="217.0" text-anchor="middle" dominant-baseline="central">截住 INTA 自己用，设备 2、3 收不到</text></g>
+  <g class="n k"><rect x="356" y="176" width="320" height="62" rx="8"/><text class="bt sm" x="516.0" y="197.0" text-anchor="middle" dominant-baseline="central">设备 1 无请求</text><text class="bs" x="516.0" y="217.0" text-anchor="middle" dominant-baseline="central">把 INTA 原样传给设备 2</text></g>
+  <text class="cap" x="0" y="262">优先级 = 物理位置，1 &gt; 2 &gt; 3；要改优先级只能重新接线</text>
+</svg>
+` },
 
     { t: 'key', id: 'two-priorities', title: '★★ 响应优先级 vs 处理优先级（整节最重要的一组）', c: String.raw`
       | | **响应优先级** | **处理优先级** |
@@ -163,19 +177,46 @@ KM.page({
       这是选择题里换汤不换药出过好几次的坑。
     ` },
 
-    { t: 'code', id: 'vector-table', title: '中断向量表长什么样（设每项 4 字节，表基址 0）', lang: '',
-      c: String.raw`
-        中断类型号 n        向量地址 = 4n        该单元的内容 = 中断向量
-        ─────────────      ──────────────       ────────────────────────
-             0                  0000H      ──▶   0000 8100H   ← 除法出错服务程序入口
-             1                  0004H      ──▶   0000 8200H   ← 单步调试
-             2                  0008H      ──▶   0000 8300H   ← NMI
-            ...                  ...                 ...
-             9                  0024H      ──▶   0000 9700H   ← 键盘中断服务程序入口
-
-        典型考法：已知类型号 9、表项 4 字节、表基址 0，问向量地址 = ?
-                  答 4×9 = 36 = 0024H  ← 问的是"地址"，不是"入口"
-      ` },
+    { t: 'diagram', id: 'vector-table', title: '中断向量表长什么样（设每项 4 字节，表基址 0）',
+      note: '三列一定要分清：类型号 → 向量地址 → 中断向量',
+      caption: String.raw`==「向量地址」和「中断向量」是两回事==，这是本节最高频的偷换概念：向量地址是**表项的地址**，中断向量是**表项里装的入口地址**。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 278" role="img" aria-label="中断向量表：类型号乘以表项长度得到向量地址，单元内容才是入口地址">
+  <text class="cap" x="40" y="16">中断类型号 n</text>
+  <text class="cap" x="260" y="16">向量地址 = 4n</text>
+  <text class="cap" x="480" y="16">该单元的内容 = 中断向量</text>
+  <g class="n k"><rect x="40" y="26" width="120" height="30" rx="4"/><text class="bt xs" x="100.0" y="41.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n g"><rect x="260" y="26" width="120" height="30" rx="4"/><text class="bt xs" x="320.0" y="41.0" text-anchor="middle" dominant-baseline="central">0000H</text></g>
+  <g class="n a"><rect x="480" y="26" width="130" height="30" rx="4"/><text class="bt xs" x="545.0" y="41.0" text-anchor="middle" dominant-baseline="central">0000 8100H</text></g>
+  <path class="ar" d="M160,41 H256"/>
+  <path class="ar" d="M380,41 H476"/>
+  <text class="lb" x="618" y="46">除法出错</text>
+  <g class="n k"><rect x="40" y="62" width="120" height="30" rx="4"/><text class="bt xs" x="100.0" y="77.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n g"><rect x="260" y="62" width="120" height="30" rx="4"/><text class="bt xs" x="320.0" y="77.0" text-anchor="middle" dominant-baseline="central">0004H</text></g>
+  <g class="n a"><rect x="480" y="62" width="130" height="30" rx="4"/><text class="bt xs" x="545.0" y="77.0" text-anchor="middle" dominant-baseline="central">0000 8200H</text></g>
+  <path class="ar" d="M160,77 H256"/>
+  <path class="ar" d="M380,77 H476"/>
+  <text class="lb" x="618" y="82">单步调试</text>
+  <g class="n k"><rect x="40" y="98" width="120" height="30" rx="4"/><text class="bt xs" x="100.0" y="113.0" text-anchor="middle" dominant-baseline="central">2</text></g>
+  <g class="n g"><rect x="260" y="98" width="120" height="30" rx="4"/><text class="bt xs" x="320.0" y="113.0" text-anchor="middle" dominant-baseline="central">0008H</text></g>
+  <g class="n a"><rect x="480" y="98" width="130" height="30" rx="4"/><text class="bt xs" x="545.0" y="113.0" text-anchor="middle" dominant-baseline="central">0000 8300H</text></g>
+  <path class="ar" d="M160,113 H256"/>
+  <path class="ar" d="M380,113 H476"/>
+  <text class="lb" x="618" y="118">NMI</text>
+  <g class="n k"><rect x="40" y="134" width="120" height="30" rx="4"/><text class="bt xs" x="100.0" y="149.0" text-anchor="middle" dominant-baseline="central">…</text></g>
+  <g class="n g"><rect x="260" y="134" width="120" height="30" rx="4"/><text class="bt xs" x="320.0" y="149.0" text-anchor="middle" dominant-baseline="central">…</text></g>
+  <g class="n a"><rect x="480" y="134" width="130" height="30" rx="4"/><text class="bt xs" x="545.0" y="149.0" text-anchor="middle" dominant-baseline="central">…</text></g>
+  <path class="ar" d="M160,149 H256"/>
+  <path class="ar" d="M380,149 H476"/>
+  <g class="n k"><rect x="40" y="170" width="120" height="30" rx="4"/><text class="bt xs" x="100.0" y="185.0" text-anchor="middle" dominant-baseline="central">9</text></g>
+  <g class="n g"><rect x="260" y="170" width="120" height="30" rx="4"/><text class="bt xs" x="320.0" y="185.0" text-anchor="middle" dominant-baseline="central">0024H</text></g>
+  <g class="n a"><rect x="480" y="170" width="130" height="30" rx="4"/><text class="bt xs" x="545.0" y="185.0" text-anchor="middle" dominant-baseline="central">0000 9700H</text></g>
+  <path class="ar" d="M160,185 H256"/>
+  <path class="ar" d="M380,185 H476"/>
+  <text class="lb" x="618" y="190">键盘中断</text>
+  <g class="n g"><rect x="20" y="216" width="656" height="50" rx="8"/><text class="bt sm" x="348.0" y="231.0" text-anchor="middle" dominant-baseline="central">典型考法：类型号 9、表项 4 字节、表基址 0，问向量地址</text><text class="bs" x="348.0" y="251.0" text-anchor="middle" dominant-baseline="central">答 4×9 = 36 = 0024H —— 问的是「地址」，不是那个单元里装的「入口」</text></g>
+</svg>
+` },
 
     { t: 'compare', id: 'vector-vs-poll', title: '向量中断 vs 软件查询：找入口的两条路',
       cols: ['', '向量中断（硬件）', '软件查询'],
@@ -190,26 +231,31 @@ KM.page({
     /* ================================================================== */
     { t: 'h', id: 'service', c: '五、中断服务程序的结构（顺序错一步就丢分）' },
 
-    { t: 'code', id: 'single-vs-multi', title: '★ 单重中断与多重中断，差别只在两条开中断指令', lang: '',
-      c: String.raw`
-        ┌──── 中断隐指令（硬件，两种情况都一样）────┐
-        │  ① 关中断                                 │
-        │  ② 保存断点（PC、PSW）                     │
-        │  ③ 引出中断服务程序（向量地址 → PC）        │
-        └───────────────────────────────────────────┘
-                          │
-          单重中断         │         多重中断（可嵌套）
-        ─────────────     │        ────────────────────
-        ④ 保护现场         │        ④ 保护现场 + ==保存旧屏蔽字==
-                          │        ⑤ ==置新屏蔽字==
-                          │        ⑥ ==开中断==      ← 从这里开始可被打断
-        ⑤ 设备服务         │        ⑦ 设备服务
-                          │        ⑧ ==关中断==      ← 恢复现场不能被打断
-        ⑥ 恢复现场         │        ⑨ 恢复现场 + ==恢复旧屏蔽字==
-        ⑦ 中断返回 IRET    │        ⑩ 中断返回 IRET
-
-        ★ 开中断必须在【保护现场之后】，关中断必须在【恢复现场之前】
-      ` },
+    { t: 'diagram', id: 'single-vs-multi', title: '★ 单重中断与多重中断，差别只在几条指令',
+      note: '琥珀 = 多重中断特有的三步',
+      caption: String.raw`==记这张图只要记两句话==：开中断放在保护现场**之后**（否则现场可能被新中断冲掉），关中断放在恢复现场**之前**（否则恢复到一半被打断）。屏蔽字的保存与恢复跟着现场走。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 400" role="img" aria-label="单重中断与多重中断的步骤对照，差别只在三条">
+  <g class="n k"><rect x="20" y="16" width="656" height="62" rx="8"/><text class="bt sm" x="348.0" y="37.0" text-anchor="middle" dominant-baseline="central">中断隐指令（硬件做，两种情况完全一样）</text><text class="bs" x="348.0" y="57.0" text-anchor="middle" dominant-baseline="central">① 关中断　② 保存断点 PC / PSW　③ 引出中断服务程序（向量地址 → PC）</text></g>
+  <path class="ar" d="M180,78 V100"/>
+  <path class="ar" d="M520,78 V100"/>
+  <text class="cap" x="20" y="118">单重中断</text>
+  <text class="cap" x="360" y="118">多重中断（可嵌套）</text>
+  <g class="n p"><rect x="20" y="128" width="300" height="30" rx="4"/><text class="bt xs" x="170.0" y="143.0" text-anchor="middle" dominant-baseline="central">④ 保护现场</text></g>
+  <g class="n p"><rect x="20" y="164" width="300" height="30" rx="4"/><text class="bt xs" x="170.0" y="179.0" text-anchor="middle" dominant-baseline="central">⑤ 设备服务</text></g>
+  <g class="n p"><rect x="20" y="200" width="300" height="30" rx="4"/><text class="bt xs" x="170.0" y="215.0" text-anchor="middle" dominant-baseline="central">⑥ 恢复现场</text></g>
+  <g class="n p"><rect x="20" y="236" width="300" height="30" rx="4"/><text class="bt xs" x="170.0" y="251.0" text-anchor="middle" dominant-baseline="central">⑦ 中断返回 IRET</text></g>
+  <g class="n p"><rect x="360" y="128" width="316" height="30" rx="4"/><text class="bt xs" x="518.0" y="143.0" text-anchor="middle" dominant-baseline="central">④ 保护现场 + 保存旧屏蔽字</text></g>
+  <g class="n a"><rect x="360" y="164" width="316" height="30" rx="4"/><text class="bt xs" x="518.0" y="179.0" text-anchor="middle" dominant-baseline="central">⑤ 置新屏蔽字</text></g>
+  <g class="n a"><rect x="360" y="200" width="316" height="30" rx="4"/><text class="bt xs" x="518.0" y="215.0" text-anchor="middle" dominant-baseline="central">⑥ 开中断</text></g>
+  <g class="n p"><rect x="360" y="236" width="316" height="30" rx="4"/><text class="bt xs" x="518.0" y="251.0" text-anchor="middle" dominant-baseline="central">⑦ 设备服务</text></g>
+  <g class="n a"><rect x="360" y="272" width="316" height="30" rx="4"/><text class="bt xs" x="518.0" y="287.0" text-anchor="middle" dominant-baseline="central">⑧ 关中断</text></g>
+  <g class="n p"><rect x="360" y="308" width="316" height="30" rx="4"/><text class="bt xs" x="518.0" y="323.0" text-anchor="middle" dominant-baseline="central">⑨ 恢复现场 + 恢复旧屏蔽字</text></g>
+  <g class="n p"><rect x="360" y="344" width="316" height="30" rx="4"/><text class="bt xs" x="518.0" y="359.0" text-anchor="middle" dominant-baseline="central">⑩ 中断返回 IRET</text></g>
+  <text class="lb" x="20" y="300">琥珀色那三条就是全部差别</text>
+  <text class="cap" x="0" y="388">开中断必须在【保护现场之后】，关中断必须在【恢复现场之前】</text>
+</svg>
+` },
 
     { t: 'warn', id: 'open-after-save', title: '★★ 开中断为什么一定要放在保护现场之后', c: String.raw`
       这是最常见的一处顺序错误，很多资料里的"口诀"都把它写反了。

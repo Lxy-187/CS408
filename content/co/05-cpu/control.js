@@ -111,21 +111,24 @@ KM.page({
       中断周期那一个见[中断机制](#/co/cpu/exception?at=cpu-cycle)。
     ` },
 
-    { t: 'code', id: 'fetch-micro', title: '取指周期的微操作序列（所有指令都一样，务必背熟）', lang: '',
-      c: String.raw`
-        T0:   (PC) → MAR ,  1 → R
-              └ 把要取的指令地址送地址寄存器，同时发读命令
-
-        T1:   M(MAR) → MDR ,  (PC) + 1 → PC
-              └ 主存把指令送到 MDR      └ PC 加 1（这两件事互不干扰，可并行）
-
-        T2:   (MDR) → IR ,  OP(IR) → 控制单元
-              └ 指令进指令寄存器        └ 操作码送去译码，决定后面怎么走
-
-        ★ 注意 (PC)+1 为什么放在 T1 而不是 T0：
-          T0 时 PC 的值刚被送去 MAR，此刻若改 PC，MAR 未必已经锁存稳定。
-          放在 T1 既安全，又和"等主存"这段慢操作重叠起来，不额外花时间。
-      ` },
+    { t: 'diagram', id: 'fetch-micro', title: '取指周期的微操作序列（所有指令都一样，务必背熟）',
+      note: '三拍，一拍都不能少',
+      caption: String.raw`==所有指令的取指周期完全相同==，所以它在硬布线设计里是唯一"无条件"的一段；在微程序里它是一段==被所有指令共享的公共微程序==。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 288" role="img" aria-label="取指周期三个节拍的微操作序列">
+  <g class="n p"><rect x="20" y="18" width="84" height="48" rx="8"/><text class="bt sm" x="62.0" y="42.0" text-anchor="middle" dominant-baseline="central">T0</text></g>
+  <g class="n a"><rect x="114" y="18" width="562" height="48" rx="8"/><text class="bt sm" x="395.0" y="32.0" text-anchor="middle" dominant-baseline="central">(PC) → MAR ， 1 → R</text><text class="bs" x="395.0" y="52.0" text-anchor="middle" dominant-baseline="central">把指令地址送地址寄存器，同时发读命令</text></g>
+  <g class="n p"><rect x="20" y="80" width="84" height="48" rx="8"/><text class="bt sm" x="62.0" y="104.0" text-anchor="middle" dominant-baseline="central">T1</text></g>
+  <g class="n a"><rect x="114" y="80" width="562" height="48" rx="8"/><text class="bt sm" x="395.0" y="94.0" text-anchor="middle" dominant-baseline="central">M(MAR) → MDR ， (PC)+1 → PC</text><text class="bs" x="395.0" y="114.0" text-anchor="middle" dominant-baseline="central">主存把指令送来；PC 加 1 —— 两件事互不干扰</text></g>
+  <path class="ar" d="M62,66 V77"/>
+  <g class="n p"><rect x="20" y="142" width="84" height="48" rx="8"/><text class="bt sm" x="62.0" y="166.0" text-anchor="middle" dominant-baseline="central">T2</text></g>
+  <g class="n a"><rect x="114" y="142" width="562" height="48" rx="8"/><text class="bt sm" x="395.0" y="156.0" text-anchor="middle" dominant-baseline="central">(MDR) → IR ， OP(IR) → 控制单元</text><text class="bs" x="395.0" y="176.0" text-anchor="middle" dominant-baseline="central">指令进 IR；操作码送去译码，决定后面怎么走</text></g>
+  <path class="ar" d="M62,128 V139"/>
+  <text class="cap" x="0" y="218">(PC)+1 为什么放在 T1 而不是 T0：</text>
+  <g class="n k"><rect x="20" y="228" width="320" height="46" rx="8"/><text class="bt sm" x="180.0" y="241.0" text-anchor="middle" dominant-baseline="central">T0 时 PC 刚被送去 MAR</text><text class="bs" x="180.0" y="261.0" text-anchor="middle" dominant-baseline="central">此刻改 PC，MAR 未必已锁存稳定</text></g>
+  <g class="n g"><rect x="356" y="228" width="320" height="46" rx="8"/><text class="bt sm" x="516.0" y="241.0" text-anchor="middle" dominant-baseline="central">放 T1 既安全又不花时间</text><text class="bs" x="516.0" y="261.0" text-anchor="middle" dominant-baseline="central">正好和"等主存"这段慢操作重叠</text></g>
+</svg>
+` },
 
     { t: 'key', id: 'timing-rules', title: '★ 微操作往节拍里塞的三条原则（设计题的评分点）', c: String.raw`
       1. **有先后依赖的微操作，不能放在同一节拍**。
@@ -320,38 +323,34 @@ KM.page({
       $$\text{一条微指令} = \text{若干个微命令（同一拍并行发出）}$$
     ` },
 
-    { t: 'code', id: 'micro-struct', title: '微程序控制器的结构与工作循环', lang: '',
-      c: String.raw`
-                     ┌─────────────────────────────────┐
-                     │      控制存储器 CM (ROM)          │
-                     │  ┌───────────────────────────┐  │
-        μAR ─── 地址 ─▶│  │ 0  取指微程序第 1 条        │  │
-       (CMAR)         │  │ 1  取指微程序第 2 条        │  │
-          ▲           │  │ 2  ADD 微程序第 1 条        │  │
-          │           │  │ 3  ADD 微程序第 2 条        │  │
-          │           │  │ …                          │  │
-          │           │  └───────────────────────────┘  │
-          │           └──────────────┬──────────────────┘
-          │                          ▼
-          │              ┌────────────────────────┐
-          │              │   微指令寄存器 μIR (CMDR) │
-          │              ├──────────┬──────┬──────┤
-          │              │ 操作控制字段│判别字段│下地址 │
-          │              └────┬─────┴──┬───┴──┬───┘
-          │                   │        │      │
-          │                   ▼        ▼      │
-          │             微命令送数据通路  ┌────────────┐
-          └─────────────────────────────│ 微地址形成部件 │
-                                        └────────────┘
-                                          ▲        ▲
-                                 OP(IR) ──┘        └── 状态标志
-
-        工作循环（永远在转）：
-          ① μAR 指向一条微指令 → 从 CM 读出送 μIR
-          ② μIR 的操作控制字段 → 变成控制信号发给数据通路
-          ③ μIR 的下地址字段 + 判别字段 + OP(IR) + 标志 → 算出下一个微地址 → μAR
-          ④ 回到 ①
-      ` },
+    { t: 'diagram', id: 'micro-struct', title: '微程序控制器的结构与工作循环',
+      note: '这个环永远在转：取微指令 → 发微命令 → 算下一个微地址',
+      caption: String.raw`把这张图和[状态机视角](#/co/cpu/fsm?at=fsm-topology)对照着看：==μAR 就是状态寄存器，微地址形成部件就是次态逻辑，操作控制字段就是输出函数==。所谓"微程序控制器"，不过是把次态与输出这两个函数==存进 ROM 查表==而已。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 316" role="img" aria-label="微程序控制器：μAR 取微指令，μIR 发微命令，微地址形成部件算次态">
+  <g class="n k"><rect x="20" y="96" width="128" height="52" rx="8"/><text class="bt sm" x="84.0" y="112.0" text-anchor="middle" dominant-baseline="central">μAR</text><text class="bs" x="84.0" y="132.0" text-anchor="middle" dominant-baseline="central">CMAR 微地址寄存器</text></g>
+  <path class="ar" d="M148,122 H186"/>
+  <text class="lb" x="167" y="112" text-anchor="middle">地址</text>
+  <g class="n g"><rect x="190" y="20" width="300" height="128" rx="8"/><text class="bt sm" x="340.0" y="40.0" text-anchor="middle" dominant-baseline="central">控制存储器 CM（ROM）</text></g>
+  <text class="lb mono" x="210" y="74">0   取指微程序第 1 条</text>
+  <text class="lb mono" x="210" y="92">1   取指微程序第 2 条</text>
+  <text class="lb mono" x="210" y="110">2   ADD 微程序第 1 条</text>
+  <text class="lb mono" x="210" y="128">3   …</text>
+  <path class="ar" d="M340,148 V174"/>
+  <text class="cap" x="190" y="192">微指令寄存器 μIR（CMDR）</text>
+  <g class="n a"><rect x="190" y="200" width="150" height="44" rx="4"/><text class="bt sm" x="265.0" y="222.0" text-anchor="middle" dominant-baseline="central">操作控制字段</text></g>
+  <g class="n a"><rect x="344" y="200" width="72" height="44" rx="4"/><text class="bt sm" x="380.0" y="222.0" text-anchor="middle" dominant-baseline="central">判别字段</text></g>
+  <g class="n a"><rect x="420" y="200" width="70" height="44" rx="4"/><text class="bt sm" x="455.0" y="222.0" text-anchor="middle" dominant-baseline="central">下地址</text></g>
+  <path class="ar" d="M265,244 V276"/>
+  <text class="cap" x="265" y="292" text-anchor="middle">微命令送数据通路</text>
+  <path class="ar" d="M490,222 H526"/>
+  <g class="n p"><rect x="530" y="196" width="150" height="52" rx="8"/><text class="bt sm" x="605.0" y="222.0" text-anchor="middle" dominant-baseline="central">微地址形成部件</text></g>
+  <path class="ar" d="M605,290 V252"/>
+  <text class="lb" x="605" y="306" text-anchor="middle">OP(IR) · 状态标志</text>
+  <path class="ar" d="M530,222 H510 V270 H84 V152"/>
+  <text class="lb" x="300" y="264">算出下一个微地址 → 回到 μAR</text>
+</svg>
+` },
 
     { t: 'steps', id: 'micro-flow', title: '执行一条机器指令，微程序控制器都做了什么', items: [
       { title: '执行「取指微程序」',
@@ -570,21 +569,27 @@ KM.page({
       ==现代微程序控制器普遍用断定方式==，因为 CM 便宜，而灵活性值钱。
     ` },
 
-    { t: 'code', id: 'branch-trick', title: '条件分支怎么做：不是"跳"，是"改地址的某一位"', lang: '',
-      note: '这个技巧很巧妙，理解了就明白判别测试字段为什么那么短',
-      c: String.raw`
-        微指令的下地址字段：  1 0 1 1 0 ?      ← 最低位待定
-        判别测试字段：        选中 "ZF"（结果为零标志）
-
-                              ZF = 0  →  下地址 = 101100  → 走"不为零"那条路
-                              ZF = 1  →  下地址 = 101101  → 走"为零"那条路
-
-        ★ 两条分支的微指令被【故意】安排在相邻的两个单元里，
-          于是"条件转移"退化成"用标志位填上地址的最后一位"——
-          不需要比较器，不需要加法器,一根线接过去就行。
-
-        ★ 要做 4 路分支？留 2 位待定，用两个标志去填。
-      ` },
+    { t: 'diagram', id: 'branch-trick', title: '条件分支怎么做：不是"跳"，是"改地址的某一位"',
+      note: '理解了这个，就明白判别测试字段为什么那么短',
+      caption: String.raw`==这就是判别字段只要几位的原因==：它不编码"跳到哪"，只编码"用哪个标志去填哪一位"。真正的目标地址是靠**把分支目标摆在相邻单元**这个约定省下来的。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 250" role="img" aria-label="条件分支靠用标志位填上微地址的最低位实现">
+  <text class="cap" x="0" y="14">微指令的下地址字段（最低位待定）</text>
+  <g class="n k"><rect x="20" y="26" width="48" height="40" rx="4"/><text class="bt sm" x="44.0" y="46.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n k"><rect x="72" y="26" width="48" height="40" rx="4"/><text class="bt sm" x="96.0" y="46.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n k"><rect x="124" y="26" width="48" height="40" rx="4"/><text class="bt sm" x="148.0" y="46.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n k"><rect x="176" y="26" width="48" height="40" rx="4"/><text class="bt sm" x="200.0" y="46.0" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n k"><rect x="228" y="26" width="48" height="40" rx="4"/><text class="bt sm" x="252.0" y="46.0" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n r"><rect x="280" y="26" width="48" height="40" rx="4"/><text class="bt sm" x="304.0" y="46.0" text-anchor="middle" dominant-baseline="central">?</text></g>
+  <text class="lb" x="320" y="50" dominant-baseline="central">← 判别测试字段选中 ZF（结果为零标志）</text>
+  <path class="ar" d="M280,86 V70"/>
+  <g class="n g"><rect x="20" y="96" width="320" height="52" rx="8"/><text class="bt sm" x="180.0" y="112.0" text-anchor="middle" dominant-baseline="central">ZF = 0  →  101100</text><text class="bs" x="180.0" y="132.0" text-anchor="middle" dominant-baseline="central">走"不为零"那条路</text></g>
+  <g class="n g"><rect x="356" y="96" width="320" height="52" rx="8"/><text class="bt sm" x="516.0" y="112.0" text-anchor="middle" dominant-baseline="central">ZF = 1  →  101101</text><text class="bs" x="516.0" y="132.0" text-anchor="middle" dominant-baseline="central">走"为零"那条路</text></g>
+  <text class="cap" x="0" y="178">两条分支的微指令被【故意】安排在相邻的两个单元里</text>
+  <g class="n a"><rect x="20" y="190" width="320" height="46" rx="8"/><text class="bt sm" x="180.0" y="203.0" text-anchor="middle" dominant-baseline="central">不需要比较器、不需要加法器</text><text class="bs" x="180.0" y="223.0" text-anchor="middle" dominant-baseline="central">一根标志线接过去就行</text></g>
+  <g class="n a"><rect x="356" y="190" width="320" height="46" rx="8"/><text class="bt sm" x="516.0" y="203.0" text-anchor="middle" dominant-baseline="central">要 4 路分支？留 2 位待定</text><text class="bs" x="516.0" y="223.0" text-anchor="middle" dominant-baseline="central">用两个标志各填一位</text></g>
+</svg>
+` },
 
     /* ================================================================== */
     { t: 'h', id: 'capacity', c: '八、容量与字长计算（这一节的计算题全在这）' },

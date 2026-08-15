@@ -35,59 +35,52 @@ KM.page({
       再配一个小硬件（DMA 控制器）来指挥这条路上的搬运。
     ` },
 
-    { t: 'code', id: 'data-path-diff', title: '两条数据通路的差别', lang: '',
-      c: String.raw`
-        中断方式：数据必须【穿过】CPU
-        ─────────────────────────────────────────────
-            设备 ──▶ 接口 ──▶ 数据总线 ──▶ ┌─────┐
-                                          │ CPU │  ← 每个字节都要
-            主存 ◀── 数据总线 ◀────────────└─────┘     经过它的寄存器
-
-        DMA 方式：数据【绕开】CPU
-        ─────────────────────────────────────────────
-                       ┌──────────┐
-            设备 ──────│ DMA 控制器│──────▶ 主存
-                       └────┬─────┘
-                            │ 只借用【总线】，不经过 CPU 的寄存器
-                            ▼
-                    ┌───────────────┐
-                    │      CPU       │  ← 只在【开始】和【结束】时出面
-                    └───────────────┘
-
-        ★ 注意 DMA 控制器【本身是一个主设备】，它要和 CPU 抢总线使用权。
-          （见 co/bus/bus-timing 的主从设备）
-      ` },
+    { t: 'diagram', id: 'data-path-diff', title: '两条数据通路的差别',
+      note: '一个"穿过"，一个"绕开"',
+      caption: String.raw`注意 ==DMA 控制器本身是一个主设备==，它要和 CPU 抢总线使用权 ——[主设备与从设备](#/co/bus/bus-timing?at=roles)。这也是为什么 DMA 省的是"搬运"，省不掉"总线"。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 288" role="img" aria-label="中断方式数据穿过 CPU，DMA 方式数据绕开 CPU 只借总线">
+  <text class="cap" x="0" y="14">① 中断方式：数据必须【穿过】CPU</text>
+  <g class="n k"><rect x="60" y="24" width="130" height="44" rx="8"/><text class="bt sm" x="125.0" y="46.0" text-anchor="middle" dominant-baseline="central">设备</text></g>
+  <g class="n k"><rect x="230" y="24" width="130" height="44" rx="8"/><text class="bt sm" x="295.0" y="46.0" text-anchor="middle" dominant-baseline="central">接口</text></g>
+  <path class="ar" d="M194,46.0 H226"/>
+  <g class="n p"><rect x="400" y="24" width="130" height="44" rx="8"/><text class="bt sm" x="465.0" y="46.0" text-anchor="middle" dominant-baseline="central">CPU 的寄存器</text></g>
+  <path class="ar" d="M364,46.0 H396"/>
+  <g class="n k"><rect x="570" y="24" width="130" height="44" rx="8"/><text class="bt sm" x="635.0" y="46.0" text-anchor="middle" dominant-baseline="central">主存</text></g>
+  <path class="ar" d="M534,46.0 H566"/>
+  <text class="lb" x="60" y="88">每一个字节都要在 CPU 里中转一次 —— 搬运工是 CPU 自己</text>
+  <text class="cap" x="0" y="134">② DMA 方式：数据【绕开】CPU</text>
+  <g class="n k"><rect x="60" y="144" width="170" height="44" rx="8"/><text class="bt sm" x="145.0" y="166.0" text-anchor="middle" dominant-baseline="central">设备</text></g>
+  <g class="n a"><rect x="276" y="144" width="170" height="44" rx="8"/><text class="bt sm" x="361.0" y="166.0" text-anchor="middle" dominant-baseline="central">DMA 控制器</text></g>
+  <path class="ar" d="M234,166.0 H272"/>
+  <g class="n k"><rect x="492" y="144" width="170" height="44" rx="8"/><text class="bt sm" x="577.0" y="166.0" text-anchor="middle" dominant-baseline="central">主存</text></g>
+  <path class="ar" d="M450,166.0 H488"/>
+  <g class="n p"><rect x="430" y="210" width="200" height="44" rx="8"/><text class="bt sm" x="530.0" y="232.0" text-anchor="middle" dominant-baseline="central">CPU</text></g>
+  <path class="ar dash" d="M366,188 V232 H426"/>
+  <text class="lb" x="150" y="208">只借用总线，不经过 CPU 的任何寄存器</text>
+  <text class="lb" x="430" y="274">CPU 只在【开始】和【结束】时出面</text>
+</svg>
+` },
 
     /* ================================================================== */
     { t: 'h', id: 'controller', c: '二、DMA 控制器的组成' },
 
-    { t: 'code', id: 'dmac-struct', title: '★ 六个部件，每个都对应一个考点', lang: '',
-      c: String.raw`
-        ┌──────────────────── DMA 控制器 ────────────────────┐
-        │                                                    │
-        │  ┌──────────────┐   主存地址寄存器 AR                │
-        │  │  AR (地址)    │──▶ 当前要访问的主存地址            │
-        │  └──────┬───────┘   每传一个字【自动 +1】            │
-        │         │                                          │
-        │  ┌──────▼───────┐   传送长度计数器 WC                │
-        │  │  WC (计数)    │──▶ 还要传多少个字                 │
-        │  └──────┬───────┘   ★ 常用【负数补码】装入，          │
-        │         │              每传一个字 +1，【溢出=传完】    │
-        │         │              溢出信号 ──▶ 中断机构          │
-        │  ┌──────▼───────┐                                   │
-        │  │  BR (数据)    │──▶ 暂存正在搬的那个字              │
-        │  └──────────────┘                                   │
-        │  ┌──────────────┐                                   │
-        │  │ DMA 请求触发器 │──▶ 设备准备好一个字时置 1          │
-        │  └──────────────┘                                   │
-        │  ┌──────────────┐                                   │
-        │  │ 控制/状态逻辑  │──▶ 定传送方向、改参数、与 CPU 同步 │
-        │  └──────────────┘                                   │
-        │  ┌──────────────┐                                   │
-        │  │   中断机构     │──▶ ★ 只在【整块传完】时才发中断    │
-        │  └──────────────┘                                   │
-        └────────────────────────────────────────────────────┘
-      ` },
+    { t: 'diagram', id: 'dmac-struct', title: '★ 六个部件，每个都对应一个考点',
+      note: '蓝 = 三个寄存器，绿 = 控制逻辑，琥珀 = 对外发中断',
+      caption: String.raw`==三个寄存器都由 CPU 在预处理阶段写入==（这就是"CPU 只在开始出面"的那一步）。负数补码装入的巧妙之处见[下一块](#/co/io/dma?at=wc-trick)。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 320" role="img" aria-label="DMA 控制器内部的六个部件">
+  <g class="n m"><rect x="20" y="16" width="656" height="268" rx="8"/><text class="bt sm" x="348.0" y="150.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <text class="cap" x="40" y="40">DMA 控制器</text>
+  <g class="n k"><rect x="40" y="54" width="300" height="64" rx="8"/><text class="bt sm" x="190.0" y="76.0" text-anchor="middle" dominant-baseline="central">AR　主存地址寄存器</text><text class="bs" x="190.0" y="96.0" text-anchor="middle" dominant-baseline="central">当前要访问的主存地址，每传一个字自动 +1</text></g>
+  <g class="n k"><rect x="358" y="54" width="300" height="64" rx="8"/><text class="bt sm" x="508.0" y="76.0" text-anchor="middle" dominant-baseline="central">WC　传送长度计数器</text><text class="bs" x="508.0" y="96.0" text-anchor="middle" dominant-baseline="central">还要传多少个字；常用负数补码装入</text></g>
+  <g class="n k"><rect x="40" y="130" width="300" height="64" rx="8"/><text class="bt sm" x="190.0" y="152.0" text-anchor="middle" dominant-baseline="central">BR　数据缓冲寄存器</text><text class="bs" x="190.0" y="172.0" text-anchor="middle" dominant-baseline="central">暂存正在搬的那个字</text></g>
+  <g class="n g"><rect x="358" y="130" width="300" height="64" rx="8"/><text class="bt sm" x="508.0" y="152.0" text-anchor="middle" dominant-baseline="central">DMA 请求触发器</text><text class="bs" x="508.0" y="172.0" text-anchor="middle" dominant-baseline="central">设备准备好一个字时置 1</text></g>
+  <g class="n g"><rect x="40" y="206" width="300" height="64" rx="8"/><text class="bt sm" x="190.0" y="228.0" text-anchor="middle" dominant-baseline="central">控制 / 状态逻辑</text><text class="bs" x="190.0" y="248.0" text-anchor="middle" dominant-baseline="central">定传送方向、改参数、与 CPU 同步</text></g>
+  <g class="n a"><rect x="358" y="206" width="300" height="64" rx="8"/><text class="bt sm" x="508.0" y="228.0" text-anchor="middle" dominant-baseline="central">中断机构</text><text class="bs" x="508.0" y="248.0" text-anchor="middle" dominant-baseline="central">只在整块传完时才发一次中断</text></g>
+  <text class="lb" x="40" y="306">WC 用负数补码装入：每传一个字 +1，计数溢出就等于「传完了」，溢出信号直接接中断机构</text>
+</svg>
+` },
 
     { t: 'key', id: 'wc-trick', title: '★ 字计数器为什么用负数装入（一个很讨巧的硬件设计）', c: String.raw`
       要传 $n$ 个字，直观做法是"装入 $n$，每传一个减 1，==减到 0 就停=="。
