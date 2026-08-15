@@ -60,37 +60,37 @@ KM.page({
         它稳定之后一直待命到下一个边沿前的建立时间窗口，==在那个边沿才被"消费"掉==——
         它决定的是第四行**下一格**的内容，而不是同一时刻正在生成的那个新方块。`,
       svg: String.raw`
-<svg class="dg" viewBox="0 0 720 344" role="img" aria-label="时钟、CU 状态、控制信号、数据寄存器四条时间轴的对齐关系">
-  <text class="cap" x="175" y="24" text-anchor="middle">边沿 n-1</text>
-  <text class="cap" x="400" y="24" text-anchor="middle">边沿 n</text>
-  <text class="cap" x="625" y="24" text-anchor="middle">边沿 n+1</text>
+<svg class="dg" viewBox="0 0 700 264" role="img" aria-label="时钟、CU 状态、控制信号、数据寄存器四条时间轴的对齐关系">
+  <text class="cap" x="170" y="16" text-anchor="middle">边沿 n-1</text>
+  <text class="cap" x="380" y="16" text-anchor="middle">边沿 n</text>
+  <text class="cap" x="590" y="16" text-anchor="middle">边沿 n+1</text>
 
-  <text class="cap" x="86" y="60" text-anchor="end">CLK</text>
-  <path class="wv" d="M95,76 H175 V46 H287 V76 H400 V46 H512 V76 H625 V46 H700"/>
+  <text class="cap" x="80" y="48" text-anchor="end" dominant-baseline="central">CLK</text>
+  <path class="wv" d="M92,58 H170 V36 H275 V58 H380 V36 H485 V58 H590 V36 H680"/>
 
-  <text class="cap" x="86" y="126" text-anchor="end">CU 状态</text>
-  <rect class="bx k" x="175" y="102" width="222" height="48" rx="8"/>
-  <text class="bt" x="286" y="126" text-anchor="middle" dominant-baseline="central">S(n-1)</text>
-  <rect class="bx k" x="402" y="102" width="222" height="48" rx="8"/>
-  <text class="bt" x="513" y="126" text-anchor="middle" dominant-baseline="central">S(n)</text>
+  <text class="cap" x="80" y="96" text-anchor="end" dominant-baseline="central">CU 状态</text>
+  <g class="n k"><rect x="170" y="76" width="208" height="40" rx="7"/>
+    <text class="bt" x="274" y="96" text-anchor="middle" dominant-baseline="central">S(n-1)</text></g>
+  <g class="n k"><rect x="382" y="76" width="208" height="40" rx="7"/>
+    <text class="bt" x="486" y="96" text-anchor="middle" dominant-baseline="central">S(n)</text></g>
 
-  <text class="cap" x="86" y="196" text-anchor="end">控制信号</text>
-  <rect class="bx a" x="205" y="172" width="192" height="48" rx="8"/>
-  <text class="bt sm" x="301" y="196" text-anchor="middle" dominant-baseline="central">对应 S(n-1) 的信号</text>
-  <rect class="bx a" x="430" y="172" width="192" height="48" rx="8"/>
-  <text class="bt sm" x="526" y="196" text-anchor="middle" dominant-baseline="central">对应 S(n) 的信号</text>
+  <text class="cap" x="80" y="148" text-anchor="end" dominant-baseline="central">控制信号</text>
+  <g class="n a"><rect x="196" y="128" width="180" height="40" rx="7"/>
+    <text class="bt sm" x="286" y="148" text-anchor="middle" dominant-baseline="central">对应 S(n-1) 的信号</text></g>
+  <g class="n a"><rect x="406" y="128" width="180" height="40" rx="7"/>
+    <text class="bt sm" x="496" y="148" text-anchor="middle" dominant-baseline="central">对应 S(n) 的信号</text></g>
 
-  <text class="cap" x="86" y="266" text-anchor="end">数据寄存器</text>
-  <rect class="bx g" x="175" y="242" width="222" height="48" rx="8"/>
-  <text class="bt" x="286" y="266" text-anchor="middle" dominant-baseline="central">V(n-1)</text>
-  <rect class="bx g" x="402" y="242" width="222" height="48" rx="8"/>
-  <text class="bt" x="513" y="266" text-anchor="middle" dominant-baseline="central">V(n)</text>
+  <text class="cap" x="80" y="200" text-anchor="end" dominant-baseline="central">数据寄存器</text>
+  <g class="n g"><rect x="170" y="180" width="208" height="40" rx="7"/>
+    <text class="bt" x="274" y="200" text-anchor="middle" dominant-baseline="central">V(n-1)</text></g>
+  <g class="n g"><rect x="382" y="180" width="208" height="40" rx="7"/>
+    <text class="bt" x="486" y="200" text-anchor="middle" dominant-baseline="central">V(n)</text></g>
 
-  <path class="ar" d="M175,308 H201"/>
-  <text class="lb" x="188" y="332" text-anchor="middle">t_CO + t_PD</text>
-  <path class="ar" d="M400,308 H426"/>
-  <text class="lb" x="413" y="332" text-anchor="middle">t_CO + t_PD</text>
-  <text class="lb" x="575" y="332" text-anchor="middle">这段稳定期供边沿 n+1 采样（t_su）</text>
+  <path class="ar" d="M170,236 H192"/>
+  <text class="lb" x="182" y="254" text-anchor="middle">t_CO + t_PD</text>
+  <path class="ar" d="M380,236 H402"/>
+  <text class="lb" x="392" y="254" text-anchor="middle">t_CO + t_PD</text>
+  <text class="lb" x="560" y="254" text-anchor="middle">这段稳定期供边沿 n+1 采样（t_su）</text>
 </svg>` },
 
     { t: 'warn', id: 'same-edge', title: '★ 澄清：CU 和数据寄存器是"同一个边沿"一起锁存的', c: String.raw`
@@ -157,25 +157,25 @@ KM.page({
       caption: String.raw`这正是数字逻辑课上分析时序电路的经典手法：==先在电路图里找反馈环，把环切开，切口处就是状态==。
         Mealy / Moore 机的形式化定义，落到电路上就是这张图。`,
       svg: String.raw`
-<svg class="dg" viewBox="0 0 720 282" role="img" aria-label="组合逻辑与寄存器通过反馈环构成时序状态机">
-  <text class="cap" x="30" y="28">时序状态机（复合结构，不是基本元件）</text>
+<svg class="dg" viewBox="0 0 700 212" role="img" aria-label="组合逻辑与寄存器通过反馈环构成时序状态机">
+  <text class="cap" x="20" y="18">时序状态机（复合结构，不是基本元件）</text>
 
-  <rect class="bx g" x="60" y="62" width="250" height="86" rx="10"/>
-  <text class="bt" x="185" y="94" text-anchor="middle" dominant-baseline="central">组合逻辑</text>
-  <text class="bs" x="185" y="120" text-anchor="middle" dominant-baseline="central">算出次态与输出</text>
+  <g class="n g"><rect x="50" y="40" width="230" height="64" rx="8"/>
+    <text class="bt" x="165" y="64" text-anchor="middle" dominant-baseline="central">组合逻辑</text>
+    <text class="bs" x="165" y="85" text-anchor="middle" dominant-baseline="central">算出次态与输出</text></g>
 
-  <rect class="bx k" x="410" y="62" width="250" height="86" rx="10"/>
-  <text class="bt" x="535" y="94" text-anchor="middle" dominant-baseline="central">寄存器</text>
-  <text class="bs" x="535" y="120" text-anchor="middle" dominant-baseline="central">在时钟边沿锁存现态</text>
+  <g class="n k"><rect x="390" y="40" width="230" height="64" rx="8"/>
+    <text class="bt" x="505" y="64" text-anchor="middle" dominant-baseline="central">寄存器</text>
+    <text class="bs" x="505" y="85" text-anchor="middle" dominant-baseline="central">在时钟边沿锁存现态</text></g>
 
-  <path class="ar" d="M310,105 H402"/>
-  <text class="lb" x="356" y="94" text-anchor="middle">次态</text>
+  <path class="ar" d="M280,72 H384"/>
+  <text class="lb" x="332" y="62" text-anchor="middle">次态</text>
 
-  <path class="ar" d="M535,148 V198 H185 V156"/>
-  <text class="cap" x="360" y="222" text-anchor="middle">反馈：现态回到组合逻辑的输入</text>
+  <path class="ar" d="M505,104 V150 H165 V110"/>
+  <text class="cap" x="335" y="168" text-anchor="middle">反馈：现态回到组合逻辑的输入</text>
 
-  <text class="lb" x="185" y="258" text-anchor="middle">例：CU 的次态译码逻辑</text>
-  <text class="lb" x="535" y="258" text-anchor="middle">例：CU 的状态寄存器 / μPC</text>
+  <text class="lb" x="165" y="198" text-anchor="middle">例：CU 的次态译码逻辑</text>
+  <text class="lb" x="505" y="198" text-anchor="middle">例：CU 的状态寄存器 / μPC</text>
 </svg>` },
 
     { t: 'compare', id: 'four-kinds', title: '★ 按这两层看，系统里的部件分成四类',
@@ -205,37 +205,37 @@ KM.page({
       caption: String.raw`==环形拓扑是状态机的必要条件，这点没有例外==；但**有没有环不能用来区分 CU 和普通寄存器**。
         $\texttt{PC}$ 自增、$\texttt{ACC}$ 累加，任何"读—改—写"的寄存器都天然带反馈环，都是极简状态机。`,
       svg: String.raw`
-<svg class="dg" viewBox="0 0 720 320" role="img" aria-label="前馈链、局部反馈环与带广播的反馈环三种拓扑对比">
-  <text class="cap" x="110" y="26" text-anchor="middle">① 前馈链（无环）</text>
-  <text class="cap" x="350" y="26" text-anchor="middle">② 局部反馈环（ACC）</text>
-  <text class="cap" x="590" y="26" text-anchor="middle">③ 反馈环 + 向外广播（CU）</text>
+<svg class="dg" viewBox="0 0 700 244" role="img" aria-label="前馈链、局部反馈环与带广播的反馈环三种拓扑对比">
+  <text class="cap" x="100" y="16" text-anchor="middle">① 前馈链（无环）</text>
+  <text class="cap" x="336" y="16" text-anchor="middle">② 局部反馈环（ACC）</text>
+  <text class="cap" x="572" y="16" text-anchor="middle">③ 反馈环 + 广播（CU）</text>
 
-  <rect class="bx k" x="20" y="50" width="180" height="56" rx="8"/>
-  <text class="bt" x="110" y="78" text-anchor="middle" dominant-baseline="central">Reg1</text>
-  <path class="ar" d="M110,106 V136"/>
-  <rect class="bx a" x="20" y="140" width="180" height="56" rx="8"/>
-  <text class="bt" x="110" y="168" text-anchor="middle" dominant-baseline="central">组合逻辑</text>
-  <path class="ar" d="M110,196 V226"/>
-  <rect class="bx k" x="20" y="230" width="180" height="56" rx="8"/>
-  <text class="bt" x="110" y="258" text-anchor="middle" dominant-baseline="central">Reg2</text>
-  <text class="lb" x="110" y="306" text-anchor="middle">继续流向下一级</text>
+  <g class="n k"><rect x="14" y="34" width="172" height="40" rx="7"/>
+    <text class="bt" x="100" y="54" text-anchor="middle" dominant-baseline="central">Reg1</text></g>
+  <path class="ar" d="M100,74 V96"/>
+  <g class="n a"><rect x="14" y="100" width="172" height="40" rx="7"/>
+    <text class="bt" x="100" y="120" text-anchor="middle" dominant-baseline="central">组合逻辑</text></g>
+  <path class="ar" d="M100,140 V162"/>
+  <g class="n k"><rect x="14" y="166" width="172" height="40" rx="7"/>
+    <text class="bt" x="100" y="186" text-anchor="middle" dominant-baseline="central">Reg2</text></g>
+  <text class="lb" x="100" y="228" text-anchor="middle">继续流向下一级</text>
 
-  <rect class="bx k" x="260" y="50" width="180" height="56" rx="8"/>
-  <text class="bt" x="350" y="78" text-anchor="middle" dominant-baseline="central">ACC</text>
-  <path class="ar" d="M350,106 V136"/>
-  <rect class="bx a" x="260" y="140" width="180" height="56" rx="8"/>
-  <text class="bt" x="350" y="168" text-anchor="middle" dominant-baseline="central">组合逻辑（+）</text>
-  <path class="ar" d="M440,168 C476,168 476,78 444,78"/>
-  <text class="lb" x="350" y="306" text-anchor="middle">环只服务自己</text>
+  <g class="n k"><rect x="250" y="34" width="172" height="40" rx="7"/>
+    <text class="bt" x="336" y="54" text-anchor="middle" dominant-baseline="central">ACC</text></g>
+  <path class="ar" d="M336,74 V96"/>
+  <g class="n a"><rect x="250" y="100" width="172" height="40" rx="7"/>
+    <text class="bt" x="336" y="120" text-anchor="middle" dominant-baseline="central">组合逻辑（+）</text></g>
+  <path class="ar" d="M422,120 C454,120 454,54 426,54"/>
+  <text class="lb" x="336" y="176" text-anchor="middle">环只服务自己</text>
 
-  <rect class="bx k" x="500" y="50" width="180" height="56" rx="8"/>
-  <text class="bt" x="590" y="78" text-anchor="middle" dominant-baseline="central">状态寄存器</text>
-  <path class="ar" d="M590,106 V136"/>
-  <rect class="bx a" x="500" y="140" width="180" height="56" rx="8"/>
-  <text class="bt" x="590" y="168" text-anchor="middle" dominant-baseline="central">组合逻辑（次态）</text>
-  <path class="ar" d="M680,168 C714,168 714,78 684,78"/>
-  <path class="ar em" d="M590,196 V246"/>
-  <text class="lb em" x="590" y="268" text-anchor="middle">控制信号 → 全系统</text>
+  <g class="n k"><rect x="486" y="34" width="172" height="40" rx="7"/>
+    <text class="bt" x="572" y="54" text-anchor="middle" dominant-baseline="central">状态寄存器</text></g>
+  <path class="ar" d="M572,74 V96"/>
+  <g class="n a"><rect x="486" y="100" width="172" height="40" rx="7"/>
+    <text class="bt" x="572" y="120" text-anchor="middle" dominant-baseline="central">组合逻辑（次态）</text></g>
+  <path class="ar" d="M658,120 C690,120 690,54 662,54"/>
+  <path class="ar em" d="M572,140 V176"/>
+  <text class="lb em" x="572" y="194" text-anchor="middle">控制信号 → 全系统</text>
 </svg>` },
 
     { t: 'key', id: 'broadcast-is-the-line', title: '★★ 真正的分水岭：那一条向外广播的边', c: String.raw`

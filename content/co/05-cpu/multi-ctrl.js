@@ -31,33 +31,33 @@ KM.page({
       caption: String.raw`从 CU 的视角看，这些信号==只是它状态转移函数里的外部输入条件==：
         满足了就往下走，不满足就原地自跳转。至于对方内部怎么算出这个信号，==CU 不关心也不需要知道==。`,
       svg: String.raw`
-<svg class="dg" viewBox="0 0 720 384" role="img" aria-label="总线仲裁器、Cache 控制器、DMA 控制器通过握手信号与 CU 耦合">
-  <rect class="bx g" x="40" y="30" width="230" height="70" rx="10"/>
-  <text class="bt" x="155" y="58" text-anchor="middle" dominant-baseline="central">总线仲裁器</text>
-  <text class="bs" x="155" y="82" text-anchor="middle" dominant-baseline="central">独立状态机</text>
+<svg class="dg" viewBox="0 0 700 284" role="img" aria-label="总线仲裁器、Cache 控制器、DMA 控制器通过握手信号与 CU 耦合">
+  <g class="n g"><rect x="30" y="20" width="196" height="52" rx="8"/>
+    <text class="bt" x="128" y="40" text-anchor="middle" dominant-baseline="central">总线仲裁器</text>
+    <text class="bs" x="128" y="59" text-anchor="middle" dominant-baseline="central">独立状态机</text></g>
 
-  <rect class="bx g" x="450" y="30" width="230" height="70" rx="10"/>
-  <text class="bt" x="565" y="58" text-anchor="middle" dominant-baseline="central">Cache 控制器</text>
-  <text class="bs" x="565" y="82" text-anchor="middle" dominant-baseline="central">独立状态机</text>
+  <g class="n g"><rect x="474" y="20" width="196" height="52" rx="8"/>
+    <text class="bt" x="572" y="40" text-anchor="middle" dominant-baseline="central">Cache 控制器</text>
+    <text class="bs" x="572" y="59" text-anchor="middle" dominant-baseline="central">独立状态机</text></g>
 
-  <rect class="bx g" x="245" y="300" width="230" height="70" rx="10"/>
-  <text class="bt" x="360" y="328" text-anchor="middle" dominant-baseline="central">DMA 控制器</text>
-  <text class="bs" x="360" y="352" text-anchor="middle" dominant-baseline="central">独立状态机</text>
+  <g class="n g"><rect x="252" y="228" width="196" height="52" rx="8"/>
+    <text class="bt" x="350" y="248" text-anchor="middle" dominant-baseline="central">DMA 控制器</text>
+    <text class="bs" x="350" y="267" text-anchor="middle" dominant-baseline="central">独立状态机</text></g>
 
-  <rect class="bx p" x="265" y="176" width="190" height="80" rx="10"/>
-  <text class="bt" x="360" y="204" text-anchor="middle" dominant-baseline="central">CU</text>
-  <text class="bs" x="360" y="230" text-anchor="middle" dominant-baseline="central">指令周期状态机</text>
+  <g class="n p"><rect x="262" y="130" width="176" height="56" rx="8"/>
+    <text class="bt" x="350" y="151" text-anchor="middle" dominant-baseline="central">CU</text>
+    <text class="bs" x="350" y="170" text-anchor="middle" dominant-baseline="central">指令周期状态机</text></g>
 
-  <path class="ar plain" d="M200,100 L290,172"/>
-  <text class="lb" x="196" y="132" text-anchor="end">总线请求 ↓</text>
-  <text class="lb" x="196" y="150" text-anchor="end">总线授权 ↑</text>
+  <path class="ar plain" d="M180,72 L266,126"/>
+  <text class="lb" x="178" y="100" text-anchor="end">总线请求 ↓</text>
+  <text class="lb" x="178" y="116" text-anchor="end">总线授权 ↑</text>
 
-  <path class="ar plain" d="M520,100 L432,172"/>
-  <text class="lb" x="524" y="132">访存请求 ↓</text>
-  <text class="lb" x="524" y="150">ready / wait ↑</text>
+  <path class="ar plain" d="M520,72 L434,126"/>
+  <text class="lb" x="522" y="100">访存请求 ↓</text>
+  <text class="lb" x="522" y="116">ready / wait ↑</text>
 
-  <path class="ar plain" d="M360,300 V260"/>
-  <text class="lb" x="376" y="274">启动参数 ↓　完成中断 ↑</text>
+  <path class="ar plain" d="M350,228 V190"/>
+  <text class="lb" x="364" y="204">启动参数 ↓　完成中断 ↑</text>
 </svg>` },
 
     { t: 'key', id: 'handshake-only', title: '★ 耦合方式只有一种：标准化的握手线', c: String.raw`
@@ -89,20 +89,20 @@ KM.page({
       caption: String.raw`到这一步接力棒已经交出去了：==CU 的状态机原地停住==（就是"驻留在同一状态"那种情形），
         真正在往前走的只剩 Cache 控制器一台。`,
       svg: String.raw`
-<svg class="dg" viewBox="0 0 720 306" role="img" aria-label="LOAD 缺失前半段：CU 发出访存请求后由 Cache 控制器接手">
-  <rect class="bx p" x="150" y="16" width="420" height="72" rx="10"/>
-  <text class="bt sm" x="360" y="44" text-anchor="middle" dominant-baseline="central">① CU：执行到访存微操作</text>
-  <text class="bs" x="360" y="68" text-anchor="middle" dominant-baseline="central">地址送 MAR，发出读请求</text>
-  <path class="ar" d="M360,88 V114"/>
+<svg class="dg" viewBox="0 0 700 208" role="img" aria-label="LOAD 缺失前半段：CU 发出访存请求后由 Cache 控制器接手">
+  <g class="n p"><rect x="140" y="8" width="420" height="52" rx="8"/>
+    <text class="bt sm" x="350" y="28" text-anchor="middle" dominant-baseline="central">① CU：执行到访存微操作</text>
+    <text class="bs" x="350" y="47" text-anchor="middle" dominant-baseline="central">地址送 MAR，发出读请求</text></g>
+  <path class="ar" d="M350,60 V74"/>
 
-  <rect class="bx g" x="150" y="118" width="420" height="72" rx="10"/>
-  <text class="bt sm" x="360" y="146" text-anchor="middle" dominant-baseline="central">② Cache 控制器：比较 tag 判命中</text>
-  <text class="bs" x="360" y="170" text-anchor="middle" dominant-baseline="central">这里假设未命中（miss）</text>
-  <path class="ar" d="M360,190 V216"/>
+  <g class="n g"><rect x="140" y="78" width="420" height="52" rx="8"/>
+    <text class="bt sm" x="350" y="98" text-anchor="middle" dominant-baseline="central">② Cache 控制器：比较 tag 判命中</text>
+    <text class="bs" x="350" y="117" text-anchor="middle" dominant-baseline="central">这里假设未命中（miss）</text></g>
+  <path class="ar" d="M350,130 V144"/>
 
-  <rect class="bx g" x="150" y="220" width="420" height="72" rx="10"/>
-  <text class="bt sm" x="360" y="248" text-anchor="middle" dominant-baseline="central">③ Cache 控制器：向仲裁器申请总线</text>
-  <text class="bs" x="360" y="272" text-anchor="middle" dominant-baseline="central">替 CU 去访问主存</text>
+  <g class="n g"><rect x="140" y="148" width="420" height="52" rx="8"/>
+    <text class="bt sm" x="350" y="168" text-anchor="middle" dominant-baseline="central">③ Cache 控制器：向仲裁器申请总线</text>
+    <text class="bs" x="350" y="187" text-anchor="middle" dominant-baseline="central">替 CU 去访问主存</text></g>
 </svg>` },
 
     { t: 'diagram', id: 'relay-2', title: '后半段：主动权再传两手，最后还给 CU',
@@ -111,25 +111,25 @@ KM.page({
         CU → Cache 控制器 → 总线仲裁器 → Cache 控制器 → CU。
         ==每一次传递靠的都只是一根握手信号==。`,
       svg: String.raw`
-<svg class="dg" viewBox="0 0 720 408" role="img" aria-label="LOAD 缺失后半段：仲裁授权、突发读整行、置 ready、CU 恢复执行">
-  <rect class="bx a" x="150" y="16" width="420" height="72" rx="10"/>
-  <text class="bt sm" x="360" y="44" text-anchor="middle" dominant-baseline="central">④ 总线仲裁器：判优并授权</text>
-  <text class="bs" x="360" y="68" text-anchor="middle" dominant-baseline="central">总线此刻空闲，直接给 grant</text>
-  <path class="ar" d="M360,88 V114"/>
+<svg class="dg" viewBox="0 0 700 278" role="img" aria-label="LOAD 缺失后半段：仲裁授权、突发读整行、置 ready、CU 恢复执行">
+  <g class="n a"><rect x="140" y="8" width="420" height="52" rx="8"/>
+    <text class="bt sm" x="350" y="28" text-anchor="middle" dominant-baseline="central">④ 总线仲裁器：判优并授权</text>
+    <text class="bs" x="350" y="47" text-anchor="middle" dominant-baseline="central">总线此刻空闲，直接给 grant</text></g>
+  <path class="ar" d="M350,60 V74"/>
 
-  <rect class="bx g" x="150" y="118" width="420" height="72" rx="10"/>
-  <text class="bt sm" x="360" y="146" text-anchor="middle" dominant-baseline="central">⑤ Cache 控制器：突发读回整行</text>
-  <text class="bs" x="360" y="170" text-anchor="middle" dominant-baseline="central">连续占用总线多个周期</text>
-  <path class="ar" d="M360,190 V216"/>
+  <g class="n g"><rect x="140" y="78" width="420" height="52" rx="8"/>
+    <text class="bt sm" x="350" y="98" text-anchor="middle" dominant-baseline="central">⑤ Cache 控制器：突发读回整行</text>
+    <text class="bs" x="350" y="117" text-anchor="middle" dominant-baseline="central">连续占用总线多个周期</text></g>
+  <path class="ar" d="M350,130 V144"/>
 
-  <rect class="bx g" x="150" y="220" width="420" height="72" rx="10"/>
-  <text class="bt sm" x="360" y="248" text-anchor="middle" dominant-baseline="central">⑥ Cache 控制器：填充完成，置 ready</text>
-  <text class="bs" x="360" y="272" text-anchor="middle" dominant-baseline="central">更新 tag 与有效位，释放总线</text>
-  <path class="ar" d="M360,292 V318"/>
+  <g class="n g"><rect x="140" y="148" width="420" height="52" rx="8"/>
+    <text class="bt sm" x="350" y="168" text-anchor="middle" dominant-baseline="central">⑥ Cache 控制器：填充完成，置 ready</text>
+    <text class="bs" x="350" y="187" text-anchor="middle" dominant-baseline="central">更新 tag 与有效位，释放总线</text></g>
+  <path class="ar" d="M350,200 V214"/>
 
-  <rect class="bx p" x="150" y="322" width="420" height="72" rx="10"/>
-  <text class="bt sm" x="360" y="350" text-anchor="middle" dominant-baseline="central">⑦ CU：等到 ready，转移条件满足</text>
-  <text class="bs" x="360" y="374" text-anchor="middle" dominant-baseline="central">把数据锁进目标寄存器，继续往下走</text>
+  <g class="n p"><rect x="140" y="218" width="420" height="52" rx="8"/>
+    <text class="bt sm" x="350" y="238" text-anchor="middle" dominant-baseline="central">⑦ CU：等到 ready，转移条件满足</text>
+    <text class="bs" x="350" y="257" text-anchor="middle" dominant-baseline="central">把数据锁进目标寄存器，继续往下走</text></g>
 </svg>` },
 
     { t: 'key', id: 'baton', title: '★★ 记住这一句：不是并行推进，是接力', c: String.raw`
@@ -190,26 +190,26 @@ KM.page({
       caption: String.raw`左边这种在数据通路里占**绝大多数**：寄存器 load 使能、ALU 操作码、MUX 选择端，
         全是单向、无需应答。右边这种只出现在==跨越"独立状态机边界"==的地方。`,
       svg: String.raw`
-<svg class="dg" viewBox="0 0 720 300" role="img" aria-label="单向控制线与请求响应握手对的对比">
-  <text class="cap" x="180" y="26" text-anchor="middle">延迟确定：一根单向控制线</text>
-  <text class="cap" x="540" y="26" text-anchor="middle">延迟不定：请求 / 响应成对</text>
+<svg class="dg" viewBox="0 0 700 218" role="img" aria-label="单向控制线与请求响应握手对的对比">
+  <text class="cap" x="160" y="16" text-anchor="middle">延迟确定：一根单向控制线</text>
+  <text class="cap" x="540" y="16" text-anchor="middle">延迟不定：请求 / 响应成对</text>
 
-  <rect class="bx p" x="60" y="52" width="240" height="64" rx="8"/>
-  <text class="bt" x="180" y="84" text-anchor="middle" dominant-baseline="central">CU</text>
-  <path class="ar" d="M180,116 V182"/>
-  <rect class="bx k" x="60" y="186" width="240" height="64" rx="8"/>
-  <text class="bt" x="180" y="218" text-anchor="middle" dominant-baseline="central">寄存器的使能端</text>
-  <text class="lb" x="180" y="278" text-anchor="middle">一根线就够：下一拍必然锁存成功</text>
+  <g class="n p"><rect x="50" y="34" width="220" height="44" rx="7"/>
+    <text class="bt" x="160" y="56" text-anchor="middle" dominant-baseline="central">CU</text></g>
+  <path class="ar" d="M160,78 V126"/>
+  <g class="n k"><rect x="50" y="130" width="220" height="44" rx="7"/>
+    <text class="bt" x="160" y="152" text-anchor="middle" dominant-baseline="central">寄存器的使能端</text></g>
+  <text class="lb" x="160" y="200" text-anchor="middle">一根线就够：下一拍必然锁存成功</text>
 
-  <rect class="bx p" x="420" y="52" width="240" height="64" rx="8"/>
-  <text class="bt" x="540" y="84" text-anchor="middle" dominant-baseline="central">CU</text>
-  <path class="ar" d="M498,116 V182"/>
-  <text class="lb" x="488" y="154" text-anchor="end">请求</text>
-  <path class="ar em" d="M582,186 V120"/>
-  <text class="lb em" x="592" y="154">ready</text>
-  <rect class="bx g" x="420" y="186" width="240" height="64" rx="8"/>
-  <text class="bt" x="540" y="218" text-anchor="middle" dominant-baseline="central">Cache 控制器</text>
-  <text class="lb" x="540" y="278" text-anchor="middle">延迟未知：必须等对方主动告知完成</text>
+  <g class="n p"><rect x="430" y="34" width="220" height="44" rx="7"/>
+    <text class="bt" x="540" y="56" text-anchor="middle" dominant-baseline="central">CU</text></g>
+  <path class="ar" d="M496,78 V126"/>
+  <text class="lb" x="488" y="106" text-anchor="end">请求</text>
+  <path class="ar em" d="M584,130 V82"/>
+  <text class="lb em" x="592" y="106">ready</text>
+  <g class="n g"><rect x="430" y="130" width="220" height="44" rx="7"/>
+    <text class="bt" x="540" y="152" text-anchor="middle" dominant-baseline="central">Cache 控制器</text></g>
+  <text class="lb" x="540" y="200" text-anchor="middle">延迟未知：必须等对方主动告知完成</text>
 </svg>` },
 
     { t: 'key', id: 'wire-rule', title: '★ 判据：响应延迟在设计阶段能不能锁定', c: String.raw`
@@ -335,51 +335,51 @@ KM.page({
       caption: String.raw`读法：==横着看一行，是这台状态机的一生；竖着看一列，是这一刻的全局快照==。
         「总线」那一行任何时刻==只可能有一种颜色==，这就是仲裁器存在的全部意义。`,
       svg: String.raw`
-<svg class="dg" viewBox="0 0 740 320" role="img" aria-label="CU、DMA 控制器、Cache 控制器与总线在四个阶段的忙闲时间线">
-  <text class="cap" x="205" y="26" text-anchor="middle">正常执行</text>
-  <text class="cap" x="355" y="26" text-anchor="middle">LOAD 缺失</text>
-  <text class="cap" x="505" y="26" text-anchor="middle">总线争用</text>
-  <text class="cap" x="655" y="26" text-anchor="middle">并行完成</text>
+<svg class="dg" viewBox="0 0 700 236" role="img" aria-label="CU、DMA 控制器、Cache 控制器与总线在四个阶段的忙闲时间线">
+  <text class="cap" x="186" y="16" text-anchor="middle">正常执行</text>
+  <text class="cap" x="332" y="16" text-anchor="middle">LOAD 缺失</text>
+  <text class="cap" x="478" y="16" text-anchor="middle">总线争用</text>
+  <text class="cap" x="624" y="16" text-anchor="middle">并行完成</text>
 
-  <text class="cap" x="122" y="72" text-anchor="end" dominant-baseline="central">CU</text>
-  <rect class="bx p" x="135" y="45" width="140" height="54" rx="6"/>
-  <text class="bt sm" x="205" y="72" text-anchor="middle" dominant-baseline="central">工作中</text>
-  <rect class="bx m" x="285" y="45" width="140" height="54" rx="6"/>
-  <text class="bt sm" x="355" y="72" text-anchor="middle" dominant-baseline="central">等待</text>
-  <rect class="bx m" x="435" y="45" width="140" height="54" rx="6"/>
-  <text class="bt sm" x="505" y="72" text-anchor="middle" dominant-baseline="central">等待</text>
-  <rect class="bx p" x="585" y="45" width="140" height="54" rx="6"/>
-  <text class="bt sm" x="655" y="72" text-anchor="middle" dominant-baseline="central">工作中</text>
+  <text class="cap" x="104" y="48" text-anchor="end" dominant-baseline="central">CU</text>
+  <g class="n p"><rect x="116" y="26" width="140" height="44" rx="6"/>
+    <text class="bt sm" x="186" y="48" text-anchor="middle" dominant-baseline="central">工作中</text></g>
+  <g class="n m"><rect x="262" y="26" width="140" height="44" rx="6"/>
+    <text class="bt sm" x="332" y="48" text-anchor="middle" dominant-baseline="central">等待</text></g>
+  <g class="n m"><rect x="408" y="26" width="140" height="44" rx="6"/>
+    <text class="bt sm" x="478" y="48" text-anchor="middle" dominant-baseline="central">等待</text></g>
+  <g class="n p"><rect x="554" y="26" width="140" height="44" rx="6"/>
+    <text class="bt sm" x="624" y="48" text-anchor="middle" dominant-baseline="central">工作中</text></g>
 
-  <text class="cap" x="122" y="140" text-anchor="end" dominant-baseline="central">DMA 控制器</text>
-  <rect class="bx m" x="135" y="113" width="140" height="54" rx="6"/>
-  <text class="bt sm" x="205" y="140" text-anchor="middle" dominant-baseline="central">空闲</text>
-  <rect class="bx m" x="285" y="113" width="140" height="54" rx="6"/>
-  <text class="bt sm" x="355" y="140" text-anchor="middle" dominant-baseline="central">空闲</text>
-  <rect class="bx m" x="435" y="113" width="140" height="54" rx="6"/>
-  <text class="bt sm" x="505" y="140" text-anchor="middle" dominant-baseline="central">申请中</text>
-  <rect class="bx a" x="585" y="113" width="140" height="54" rx="6"/>
-  <text class="bt sm" x="655" y="140" text-anchor="middle" dominant-baseline="central">传输中</text>
+  <text class="cap" x="104" y="100" text-anchor="end" dominant-baseline="central">DMA 控制器</text>
+  <g class="n m"><rect x="116" y="78" width="140" height="44" rx="6"/>
+    <text class="bt sm" x="186" y="100" text-anchor="middle" dominant-baseline="central">空闲</text></g>
+  <g class="n m"><rect x="262" y="78" width="140" height="44" rx="6"/>
+    <text class="bt sm" x="332" y="100" text-anchor="middle" dominant-baseline="central">空闲</text></g>
+  <g class="n m"><rect x="408" y="78" width="140" height="44" rx="6"/>
+    <text class="bt sm" x="478" y="100" text-anchor="middle" dominant-baseline="central">申请中</text></g>
+  <g class="n a"><rect x="554" y="78" width="140" height="44" rx="6"/>
+    <text class="bt sm" x="624" y="100" text-anchor="middle" dominant-baseline="central">传输中</text></g>
 
-  <text class="cap" x="122" y="208" text-anchor="end" dominant-baseline="central">Cache 控制器</text>
-  <rect class="bx m" x="135" y="181" width="140" height="54" rx="6"/>
-  <text class="bt sm" x="205" y="208" text-anchor="middle" dominant-baseline="central">空闲</text>
-  <rect class="bx g" x="285" y="181" width="140" height="54" rx="6"/>
-  <text class="bt sm" x="355" y="208" text-anchor="middle" dominant-baseline="central">miss 处理</text>
-  <rect class="bx g" x="435" y="181" width="140" height="54" rx="6"/>
-  <text class="bt sm" x="505" y="208" text-anchor="middle" dominant-baseline="central">填充中</text>
-  <rect class="bx m" x="585" y="181" width="140" height="54" rx="6"/>
-  <text class="bt sm" x="655" y="208" text-anchor="middle" dominant-baseline="central">空闲</text>
+  <text class="cap" x="104" y="152" text-anchor="end" dominant-baseline="central">Cache 控制器</text>
+  <g class="n m"><rect x="116" y="130" width="140" height="44" rx="6"/>
+    <text class="bt sm" x="186" y="152" text-anchor="middle" dominant-baseline="central">空闲</text></g>
+  <g class="n g"><rect x="262" y="130" width="140" height="44" rx="6"/>
+    <text class="bt sm" x="332" y="152" text-anchor="middle" dominant-baseline="central">miss 处理</text></g>
+  <g class="n g"><rect x="408" y="130" width="140" height="44" rx="6"/>
+    <text class="bt sm" x="478" y="152" text-anchor="middle" dominant-baseline="central">填充中</text></g>
+  <g class="n m"><rect x="554" y="130" width="140" height="44" rx="6"/>
+    <text class="bt sm" x="624" y="152" text-anchor="middle" dominant-baseline="central">空闲</text></g>
 
-  <text class="cap" x="122" y="276" text-anchor="end" dominant-baseline="central">总线</text>
-  <rect class="bx p" x="135" y="249" width="140" height="54" rx="6"/>
-  <text class="bt sm" x="205" y="276" text-anchor="middle" dominant-baseline="central">CU 占用</text>
-  <rect class="bx m" x="285" y="249" width="140" height="54" rx="6"/>
-  <text class="bt sm" x="355" y="276" text-anchor="middle" dominant-baseline="central">空闲</text>
-  <rect class="bx g" x="435" y="249" width="140" height="54" rx="6"/>
-  <text class="bt sm" x="505" y="276" text-anchor="middle" dominant-baseline="central">Cache 占用</text>
-  <rect class="bx a" x="585" y="249" width="140" height="54" rx="6"/>
-  <text class="bt sm" x="655" y="276" text-anchor="middle" dominant-baseline="central">DMA 占用</text>
+  <text class="cap" x="104" y="204" text-anchor="end" dominant-baseline="central">总线</text>
+  <g class="n p"><rect x="116" y="182" width="140" height="44" rx="6"/>
+    <text class="bt sm" x="186" y="204" text-anchor="middle" dominant-baseline="central">CU 占用</text></g>
+  <g class="n m"><rect x="262" y="182" width="140" height="44" rx="6"/>
+    <text class="bt sm" x="332" y="204" text-anchor="middle" dominant-baseline="central">空闲</text></g>
+  <g class="n g"><rect x="408" y="182" width="140" height="44" rx="6"/>
+    <text class="bt sm" x="478" y="204" text-anchor="middle" dominant-baseline="central">Cache 占用</text></g>
+  <g class="n a"><rect x="554" y="182" width="140" height="44" rx="6"/>
+    <text class="bt sm" x="624" y="204" text-anchor="middle" dominant-baseline="central">DMA 占用</text></g>
 </svg>` },
 
     { t: 'key', id: 'three-kinds', title: '★★ 从这张图能读出三种截然不同的关系', c: String.raw`

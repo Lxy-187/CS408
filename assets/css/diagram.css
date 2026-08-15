@@ -2,44 +2,15 @@
    diagram.css —— 示意图块（{ t:'diagram' }）
    408 里很多结构和时序，画出来比写三段话有用。这里的图一律是「内联 SVG +
    语义类名」：颜色全部走 CSS 变量，所以明暗主题都对，也能随窗口缩放。
-   —— 不要在 SVG 里写死颜色，否则深色主题下会瞎。
+
+   配色刻意和 callout 块共用同一批变量（--c-key / --c-method / …）：
+   ==淡色底 + 同色描边 + 同色深文字==，图才会和页面融成一体，
+   而不是几块贴上去的实色板。==不要在 SVG 里写死颜色。==
    ========================================================================== */
-
-:root, :root[data-theme="light"] {
-  --d-blue:   #164a86;   /* 寄存器 / 状态：对应 key 蓝 */
-  --d-green:  #10553f;   /* 组合逻辑 / 独立控制器：对应 insight 绿 */
-  --d-amber:  #6b3d0b;   /* 控制信号 / 争用中的资源：对应 example 琥珀 */
-  --d-purple: #3b3392;   /* CU：对应 method 紫 */
-  --d-mute:   #3f434a;   /* 空闲 / 等待 */
-  --d-line:   #9a958c;   /* 连线与波形 */
-  --d-em:     #c2700f;   /* 需要强调的那一根线（如控制信号广播） */
-}
-
-:root[data-theme="dark"] {
-  --d-blue:   #1d5ea8;
-  --d-green:  #146b50;
-  --d-amber:  #8a5312;
-  --d-purple: #4a40b8;
-  --d-mute:   #474c55;
-  --d-line:   #767d88;
-  --d-em:     #d98b28;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root[data-theme="auto"] {
-    --d-blue:   #1d5ea8;
-    --d-green:  #146b50;
-    --d-amber:  #8a5312;
-    --d-purple: #4a40b8;
-    --d-mute:   #474c55;
-    --d-line:   #767d88;
-    --d-em:     #d98b28;
-  }
-}
 
 /* ------------------------------- 外框 ------------------------------- */
 .dgbox {
-  margin: var(--sp-5) 0;
+  margin: var(--sp-4) 0;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-elev);
@@ -51,62 +22,80 @@
   align-items: baseline;
   gap: var(--sp-2);
   flex-wrap: wrap;
-  padding: var(--sp-3) var(--sp-4);
+  padding: var(--sp-2) var(--sp-4);
   border-bottom: 1px solid var(--border);
   background: var(--bg-sunken);
 }
 
 .dg-tag {
-  font: 600 var(--fs-xs)/1 var(--font-mono);
+  font: 600 11px/1 var(--font-mono);
   letter-spacing: .08em;
   color: var(--fg-faint);
   border: 1px solid var(--border-strong);
   border-radius: 4px;
-  padding: 3px 6px;
+  padding: 2px 5px;
   flex: none;
 }
 
 .dg-title { font-weight: 600; font-size: var(--fs-sm); color: var(--fg-strong); }
 .dg-note  { font-size: var(--fs-xs); color: var(--fg-muted); }
 
-.dg-scroll { overflow-x: auto; padding: var(--sp-4); }
+.dg-scroll { overflow-x: auto; padding: var(--sp-3) var(--sp-4); }
 
 .dgbox figcaption {
-  padding: 0 var(--sp-4) var(--sp-4);
+  padding: 0 var(--sp-4) var(--sp-3);
   font-size: var(--fs-sm);
   color: var(--fg-muted);
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
-/* 图本身：宽度自适应，但不许压到看不清，压不下就横向滚动 */
-.dg { display: block; width: 100%; min-width: 560px; height: auto; }
+/* 图本身：宽度自适应，但不许压到看不清，压不下就在自己框里横向滚动 */
+.dg { display: block; width: 100%; min-width: 520px; height: auto; }
 .dg text { font-family: var(--font-sans); }
 
-/* ------------------------------- 零件 ------------------------------- */
-/* 圆角写在 SVG 的 rx 属性里（CSS 的 rx 几何属性老浏览器不认），这里只管填色 */
-.dg .bx.k { fill: var(--d-blue); }
-.dg .bx.g { fill: var(--d-green); }
-.dg .bx.a { fill: var(--d-amber); }
-.dg .bx.p { fill: var(--d-purple); }
-.dg .bx.m { fill: var(--d-mute); }
+/* ------------------------------ 节点 ------------------------------
+   一个节点 = <g class="n k"> 里放一个 rect 加一到两行 text，
+   配色由 g 上的那个字母决定，rect 和 text 不用各自标颜色。 */
+.dg .n rect { stroke-width: 1; }
+.dg .n .bt { font-size: 13.5px; font-weight: 600; }
+.dg .n .bt.sm { font-size: 12px; }
+.dg .n .bt.xs { font-size: 10px; font-weight: 600; }   /* 流水线时空图那种小格子 */
+.dg .n .bs { font-size: 11.5px; fill: var(--fg-muted); }
 
-.dg .bt { fill: #fff; font-size: 15px; font-weight: 700; }
-.dg .bs { fill: rgba(255,255,255,.74); font-size: 12px; }
-.dg .bt.sm { font-size: 13.5px; }
+.dg .n.k rect { fill: var(--c-key-bg);     stroke: var(--c-key-br); }
+.dg .n.k .bt  { fill: var(--c-key); }
+.dg .n.g rect { fill: var(--c-insight-bg); stroke: var(--c-insight-br); }
+.dg .n.g .bt  { fill: var(--c-insight); }
+.dg .n.a rect { fill: var(--c-example-bg); stroke: var(--c-example-br); }
+.dg .n.a .bt  { fill: var(--c-example); }
+.dg .n.p rect { fill: var(--c-method-bg);  stroke: var(--c-method-br); }
+.dg .n.p .bt  { fill: var(--c-method); }
+.dg .n.r rect { fill: var(--c-warn-bg);    stroke: var(--c-warn-br); }
+.dg .n.r .bt  { fill: var(--c-warn); }
+.dg .n.m rect { fill: var(--bg-sunken);    stroke: var(--border); }
+.dg .n.m .bt  { fill: var(--fg-faint); font-weight: 500; }
 
-.dg .cap { fill: var(--fg-muted); font-size: 13px; }
-.dg .lb  { fill: var(--fg-faint); font-size: 12px; }
-.dg .lb.em { fill: var(--d-em); }
+/* 强调一个节点（当前正在跑的那台状态机 / 关键那一格） */
+.dg .n.on rect { stroke-width: 1.8; }
 
-.dg .ar { fill: none; stroke: var(--d-line); stroke-width: 1.6; marker-end: url(#dg-ar); }
-.dg .ar.em { stroke: var(--d-em); marker-end: url(#dg-are); }
+/* ------------------------------ 文字与线 ------------------------------ */
+.dg .cap { fill: var(--fg-muted); font-size: 12.5px; }
+.dg .lb  { fill: var(--fg-faint); font-size: 11.5px; }
+.dg .lb.em { fill: var(--c-example); }
+.dg .lb.k  { fill: var(--c-key); }
+.dg .lb.mono { font-family: var(--font-mono); font-size: 11px; }
+
+.dg .ar { fill: none; stroke: var(--border-strong); stroke-width: 1.4; marker-end: url(#dg-ar); }
+.dg .ar.em { stroke: var(--c-example); marker-end: url(#dg-are); }
 .dg .ar.plain { marker-end: none; }
-.dg .wv { fill: none; stroke: var(--d-line); stroke-width: 1.6; }
-.dg .gd { stroke: var(--border-strong); stroke-width: 1; stroke-dasharray: 3 4; }
+.dg .ar.dash { stroke-dasharray: 4 4; }
+.dg .wv { fill: none; stroke: var(--fg-faint); stroke-width: 1.4; }
+.dg .gd { stroke: var(--border); stroke-width: 1; stroke-dasharray: 3 4; }
+.dg .sep { stroke: var(--border); stroke-width: 1; }
 
 /* 箭头（全局 defs，见 blocks.js 的 ensureDefs） */
-#dg-ar  path { fill: var(--d-line); }
-#dg-are path { fill: var(--d-em); }
+#dg-ar  path { fill: var(--border-strong); }
+#dg-are path { fill: var(--c-example); }
 
 @media (max-width: 900px) {
   .dg-scroll { padding: var(--sp-3); }

@@ -131,35 +131,44 @@ KM.page({
 
 ### `diagram` 块 —— 手写内联 SVG 的示意图
 
-ASCII 图能说清的照旧用 `code` 块。==只有当图里有"对齐关系、并行时间轴、反馈环、
-谁连到谁"这类空间信息时，才升级成 `diagram`==（时序波形、泳道图、框图）。
+ASCII 图能说清的照旧用 `code` 块（==位段排布、地址划分、竖式、字符串对齐这些靠等宽对齐吃饭的，
+永远留在 `code` 里==）。只有当图里有「空间关系」时才升级成 `diagram`：
+框图与拓扑、时序波形、流水线时空图、泳道时间线、谁连到谁。
 
 ```js
 { t: 'diagram', id: 'cu-timing', title: '标题', note: '标题旁的一句话',
   caption: String.raw`图下方的说明，支持 Markdown 与 $公式$，会进搜索`,
   svg: String.raw`
-<svg class="dg" viewBox="0 0 720 340" role="img" aria-label="给读屏用的一句话">
-  <rect class="bx k" x="20" y="50" width="180" height="56" rx="8"/>
-  <text class="bt" x="110" y="78" text-anchor="middle" dominant-baseline="central">Reg1</text>
-  <path class="ar" d="M110,106 V136"/>
+<svg class="dg" viewBox="0 0 700 240" role="img" aria-label="给读屏用的一句话">
+  <g class="n k"><rect x="14" y="34" width="172" height="40" rx="7"/>
+    <text class="bt" x="100" y="54" text-anchor="middle" dominant-baseline="central">Reg1</text></g>
+  <path class="ar" d="M100,74 V96"/>
 </svg>` }
 ```
 
-**类名就是全部的词汇**（定义在 `assets/css/diagram.css`）：
+**一个节点 = 一个 `<g class="n 颜色">`**，里面一个 `rect` 加一到两行 `text`，
+颜色由 `g` 上那个字母决定，rect 和 text 都不用自己标颜色：
 
-| 类 | 用途 |
+| 类 | 语义（和 callout 块共用同一批变量） |
 |---|---|
-| `.bx.k` / `.bx.g` / `.bx.a` / `.bx.p` / `.bx.m` | 方块填色：蓝=寄存器/状态 · 绿=组合逻辑/独立控制器 · 琥珀=控制信号/占用中 · 紫=CU · 灰=空闲或等待 |
-| `.bt`（`.bt.sm`）/ `.bs` | 框内标题 / 框内小字，都是白字 |
-| `.cap` / `.lb`（`.lb.em`） | 图内说明 / 连线标注 |
-| `.ar`（`.ar.em` 强调、`.ar.plain` 无箭头）/ `.wv` / `.gd` | 箭头线 / 波形 / 虚线参考线 |
+| `.n.k` 蓝 | 寄存器、状态、客观结构 |
+| `.n.g` 绿 | 组合逻辑、独立跑的控制器 |
+| `.n.a` 琥珀 | 控制信号、被占用的资源、时间片 |
+| `.n.p` 紫 | CU / 主动方 |
+| `.n.r` 红 | 冲突、出错、被丢弃 |
+| `.n.m` 灰 | 空闲、等待、不参与 |
+
+框内文字 `.bt`（`.bt.sm` 小一号）与 `.bs`（第二行，灰）；
+框外 `.cap`（图内说明）与 `.lb`（连线标注，可加 `.em` 琥珀 / `.k` 蓝 / `.mono` 等宽）；
+线用 `.ar`（`.em` 强调、`.dash` 虚线、`.plain` 去箭头）、`.wv` 波形、`.gd` 参考线、`.sep` 分隔线。
 
 **几条硬规矩**：
 
-- ==绝对不要在 SVG 里写死颜色==（`fill="#123456"`），深色主题下会瞎。只用上面的类。
-- 颜色语义和块的语义保持一致（紫=CU 是"发指令的那个"，绿=独立跑的状态机）。
-- `viewBox` 宽度用 **720**（正文宽度），需要更宽就到 740；图会等比缩放，
-  窄屏下最小 560px 后横向滚动。
+- ==绝对不要在 SVG 里写死颜色==（`fill="#123456"`），深浅主题各崩一次。只用上面的类。
+- ==淡底 + 同色描边 + 同色文字==是这套图的基调，不要改成实色块——图要和页面融成一体，
+  而不是几张贴上去的色板。
+- `viewBox` 宽度用 **700**（正好是正文宽度），高度能压就压：
+  单行框 40，两行框 52，箭头间距 14~22。==图占的高度越小，翻页时越容易和正文一起被看见==。
 - 文字用 `text-anchor="middle"` + `dominant-baseline="central"` 手动定位，
   ==SVG 里不能写 `$公式$`==（不过 KaTeX），要公式就写在 `caption` 里。
 - 图注写 `caption` 而不是塞进 SVG：`caption` 进搜索索引，SVG 不进。
