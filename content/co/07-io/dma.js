@@ -9,7 +9,7 @@ KM.page({
   title: 'DMA 传送过程与周期挪用',
   subtitle: 'DMA 把 CPU 从"搬运工"降级成了"包工头"：**只管发包和验收，不碰货**',
   tags: ['高频', '必考', '手算', '概念辨析'],
-  updated: '2026-08-14',
+  updated: '2026-08-16',
 
   blocks: [
 
@@ -147,6 +147,13 @@ KM.page({
 
           ==注意这是整个过程中唯一的一次中断==。` },
     ] },
+
+    { t: 'md', c: String.raw`
+      三个阶段里==只有中间那段是 DMA 控制器自己在跑==：
+      预处理是 CPU 按部就班执行普通指令，后处理是中断服务程序。
+      这也正是"DMA 与 CPU 并行"这句话的准确含义——
+      [并行、串行依赖、资源互斥三者的区别](#/co/cpu/multi-ctrl?at=three-kinds)。
+    ` },
 
     { t: 'warn', id: 'dma-needs-int', title: '★ "DMA 方式不需要中断"是错的', c: String.raw`
       这是本节最高频的判断题。正确的说法是：
