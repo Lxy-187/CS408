@@ -186,34 +186,83 @@ KM.page({
       怎么分配这个冲突，有三种做法。==这是本节的核心考点。==
     ` },
 
-    { t: 'code', id: 'three-access', title: '★★ 三种方式的时间轴对比', lang: '',
-      c: String.raw`
-        ① 停止 CPU 访问主存
-        ────────────────────────────────────────────────
-        CPU  ████████░░░░░░░░░░░░░░░░░░░░░░░░████████
-                     └──── CPU 完全停下来 ────┘
-        DMA          ████████████████████████
-                     └── 一次传完【整块】 ──┘
-        ★ 控制最简单；但 CPU 长时间停摆，主存利用率低
+    { t: 'diagram', id: 'three-access', title: '★★ 三种方式的时间轴对比',
+      note: '紫 = CPU 在用主存，琥珀 = DMA 在用，灰 = 这一方停着',
+      caption: String.raw`三张图的区别只在==「主存这份资源被切成多大的块分给两边」==：
+        ①一整块全给 DMA，②一次只偷一个存取周期，③按固定时间片轮流。
+        ==③ 不需要申请 / 建立 / 归还总线==，因为时间片是预先分好的，
+        前提是 CPU 的工作周期长于主存的存取周期。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 250" role="img" aria-label="停止 CPU 访存、周期挪用、交替访存三种 DMA 方式的时间轴">
+  <text class="cap" x="0" y="14">① 停止 CPU 访问主存</text>
+  <text class="lb" x="88" y="36" text-anchor="end" dominant-baseline="central">CPU</text>
+  <g class="n p"><rect x="96" y="26" width="80" height="20" rx="3"/><text class="bt xs" x="136.0" y="36.0" text-anchor="middle" dominant-baseline="central">执行</text></g>
+  <g class="n m"><rect x="178" y="26" width="300" height="20" rx="3"/><text class="bt xs" x="328.0" y="36.0" text-anchor="middle" dominant-baseline="central">CPU 完全停下来</text></g>
+  <g class="n p"><rect x="480" y="26" width="80" height="20" rx="3"/><text class="bt xs" x="520.0" y="36.0" text-anchor="middle" dominant-baseline="central">执行</text></g>
+  <text class="lb" x="88" y="60" text-anchor="end" dominant-baseline="central">DMA</text>
+  <g class="n a"><rect x="178" y="50" width="300" height="20" rx="3"/><text class="bt xs" x="328.0" y="60.0" text-anchor="middle" dominant-baseline="central">一次传完整块</text></g>
 
-        ② 周期挪用（周期窃取）★ 最常用
-        ────────────────────────────────────────────────
-        CPU  ███░███░░███░█░███░░░███░████░███
-        DMA     █    ██   █    ███   █
-                ↑    ↑    ↑    ↑     ↑
-             每次只【偷走一个存取周期】，偷完就还
-        ★ CPU 和 DMA 交错前进，效率最好
+  <text class="cap" x="0" y="94">② 周期挪用（周期窃取）—— 最常用</text>
+  <text class="lb" x="88" y="114" text-anchor="end" dominant-baseline="central">CPU</text>
+  <text class="lb" x="88" y="138" text-anchor="end" dominant-baseline="central">DMA</text>
+  <g class="n p"><rect x="96" y="104" width="22" height="20" rx="3"/><text class="bt xs" x="107.0" y="114.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="96" y="128" width="22" height="20" rx="3"/><text class="bt xs" x="107.0" y="138.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n p"><rect x="120" y="104" width="22" height="20" rx="3"/><text class="bt xs" x="131.0" y="114.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="120" y="128" width="22" height="20" rx="3"/><text class="bt xs" x="131.0" y="138.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="144" y="104" width="22" height="20" rx="3"/><text class="bt xs" x="155.0" y="114.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n a"><rect x="144" y="128" width="22" height="20" rx="3"/><text class="bt xs" x="155.0" y="138.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n p"><rect x="168" y="104" width="22" height="20" rx="3"/><text class="bt xs" x="179.0" y="114.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="168" y="128" width="22" height="20" rx="3"/><text class="bt xs" x="179.0" y="138.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n p"><rect x="192" y="104" width="22" height="20" rx="3"/><text class="bt xs" x="203.0" y="114.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="192" y="128" width="22" height="20" rx="3"/><text class="bt xs" x="203.0" y="138.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n p"><rect x="216" y="104" width="22" height="20" rx="3"/><text class="bt xs" x="227.0" y="114.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="216" y="128" width="22" height="20" rx="3"/><text class="bt xs" x="227.0" y="138.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="240" y="104" width="22" height="20" rx="3"/><text class="bt xs" x="251.0" y="114.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n a"><rect x="240" y="128" width="22" height="20" rx="3"/><text class="bt xs" x="251.0" y="138.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n p"><rect x="264" y="104" width="22" height="20" rx="3"/><text class="bt xs" x="275.0" y="114.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="264" y="128" width="22" height="20" rx="3"/><text class="bt xs" x="275.0" y="138.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n p"><rect x="288" y="104" width="22" height="20" rx="3"/><text class="bt xs" x="299.0" y="114.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="288" y="128" width="22" height="20" rx="3"/><text class="bt xs" x="299.0" y="138.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n p"><rect x="312" y="104" width="22" height="20" rx="3"/><text class="bt xs" x="323.0" y="114.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="312" y="128" width="22" height="20" rx="3"/><text class="bt xs" x="323.0" y="138.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n p"><rect x="336" y="104" width="22" height="20" rx="3"/><text class="bt xs" x="347.0" y="114.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="336" y="128" width="22" height="20" rx="3"/><text class="bt xs" x="347.0" y="138.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="360" y="104" width="22" height="20" rx="3"/><text class="bt xs" x="371.0" y="114.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n a"><rect x="360" y="128" width="22" height="20" rx="3"/><text class="bt xs" x="371.0" y="138.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n p"><rect x="384" y="104" width="22" height="20" rx="3"/><text class="bt xs" x="395.0" y="114.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="384" y="128" width="22" height="20" rx="3"/><text class="bt xs" x="395.0" y="138.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n p"><rect x="408" y="104" width="22" height="20" rx="3"/><text class="bt xs" x="419.0" y="114.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="408" y="128" width="22" height="20" rx="3"/><text class="bt xs" x="419.0" y="138.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n p"><rect x="432" y="104" width="22" height="20" rx="3"/><text class="bt xs" x="443.0" y="114.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="432" y="128" width="22" height="20" rx="3"/><text class="bt xs" x="443.0" y="138.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="456" y="104" width="22" height="20" rx="3"/><text class="bt xs" x="467.0" y="114.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n a"><rect x="456" y="128" width="22" height="20" rx="3"/><text class="bt xs" x="467.0" y="138.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n p"><rect x="480" y="104" width="22" height="20" rx="3"/><text class="bt xs" x="491.0" y="114.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="480" y="128" width="22" height="20" rx="3"/><text class="bt xs" x="491.0" y="138.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n p"><rect x="504" y="104" width="22" height="20" rx="3"/><text class="bt xs" x="515.0" y="114.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="504" y="128" width="22" height="20" rx="3"/><text class="bt xs" x="515.0" y="138.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n p"><rect x="528" y="104" width="22" height="20" rx="3"/><text class="bt xs" x="539.0" y="114.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="528" y="128" width="22" height="20" rx="3"/><text class="bt xs" x="539.0" y="138.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n p"><rect x="552" y="104" width="22" height="20" rx="3"/><text class="bt xs" x="563.0" y="114.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <g class="n m"><rect x="552" y="128" width="22" height="20" rx="3"/><text class="bt xs" x="563.0" y="138.0" text-anchor="middle" dominant-baseline="central"></text></g>
+  <text class="lb" x="96" y="164">每次只偷走一个存取周期，偷完就还 —— CPU 与 DMA 交错前进</text>
 
-        ③ DMA 与 CPU 交替访存
-        ────────────────────────────────────────────────
-        一个 CPU 周期 ──▶ ┌──C1──┬──C2──┐
-                          │ DMA  │ CPU  │
-                          └──────┴──────┘
-        CPU  ░░██░░██░░██░░██░░██░░██
-        DMA  ██░░██░░██░░██░░██░░██░░
-        ★ 【不需要申请、建立、归还总线】——时间片是预先分好的
-          前提：CPU 的工作周期 > 主存的存取周期
-      ` },
+  <text class="cap" x="0" y="182">③ DMA 与 CPU 交替访存</text>
+  <text class="lb" x="88" y="207" text-anchor="end" dominant-baseline="central">主存</text>
+  <g class="n a"><rect x="96" y="196" width="36" height="22" rx="3"/><text class="bt xs" x="114.0" y="207.0" text-anchor="middle" dominant-baseline="central">DMA</text></g>
+  <g class="n p"><rect x="134" y="196" width="36" height="22" rx="3"/><text class="bt xs" x="152.0" y="207.0" text-anchor="middle" dominant-baseline="central">CPU</text></g>
+  <g class="n a"><rect x="172" y="196" width="36" height="22" rx="3"/><text class="bt xs" x="190.0" y="207.0" text-anchor="middle" dominant-baseline="central">DMA</text></g>
+  <g class="n p"><rect x="210" y="196" width="36" height="22" rx="3"/><text class="bt xs" x="228.0" y="207.0" text-anchor="middle" dominant-baseline="central">CPU</text></g>
+  <g class="n a"><rect x="248" y="196" width="36" height="22" rx="3"/><text class="bt xs" x="266.0" y="207.0" text-anchor="middle" dominant-baseline="central">DMA</text></g>
+  <g class="n p"><rect x="286" y="196" width="36" height="22" rx="3"/><text class="bt xs" x="304.0" y="207.0" text-anchor="middle" dominant-baseline="central">CPU</text></g>
+  <g class="n a"><rect x="324" y="196" width="36" height="22" rx="3"/><text class="bt xs" x="342.0" y="207.0" text-anchor="middle" dominant-baseline="central">DMA</text></g>
+  <g class="n p"><rect x="362" y="196" width="36" height="22" rx="3"/><text class="bt xs" x="380.0" y="207.0" text-anchor="middle" dominant-baseline="central">CPU</text></g>
+  <g class="n a"><rect x="400" y="196" width="36" height="22" rx="3"/><text class="bt xs" x="418.0" y="207.0" text-anchor="middle" dominant-baseline="central">DMA</text></g>
+  <g class="n p"><rect x="438" y="196" width="36" height="22" rx="3"/><text class="bt xs" x="456.0" y="207.0" text-anchor="middle" dominant-baseline="central">CPU</text></g>
+  <g class="n a"><rect x="476" y="196" width="36" height="22" rx="3"/><text class="bt xs" x="494.0" y="207.0" text-anchor="middle" dominant-baseline="central">DMA</text></g>
+  <g class="n p"><rect x="514" y="196" width="36" height="22" rx="3"/><text class="bt xs" x="532.0" y="207.0" text-anchor="middle" dominant-baseline="central">CPU</text></g>
+  <text class="lb" x="96" y="234">一个 CPU 周期 = C1（给 DMA）+ C2（给 CPU），时间片预先分好</text>
+</svg>` },
 
     { t: 'compare', id: 'access-compare', title: '三种方式对比',
       cols: ['', '停止 CPU 访存', '周期挪用', 'DMA 与 CPU 交替访存'],

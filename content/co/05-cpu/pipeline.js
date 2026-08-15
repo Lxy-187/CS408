@@ -10,7 +10,7 @@ KM.page({
   title: '流水线：冒险与性能计算',
   subtitle: '流水线==不缩短单条指令的时间==，只提高吞吐率。这一句是本页所有公式和所有冒险的共同前提',
   tags: ['高频', '必考', '综合应用', '手算'],
-  updated: '2026-08-14',
+  updated: '2026-08-16',
 
   blocks: [
 
@@ -25,26 +25,88 @@ KM.page({
       第 1 条指令进入 ID 段时，让第 2 条指令进入 IF 段 —— 这就是流水线。
     ` },
 
-    { t: 'code', id: 'overlap', title: '同样 5 条指令，串行 vs 流水', lang: '',
-      c: String.raw`
-        串行执行（多周期）：每条指令跑完 5 拍，下一条才开始
-        ─────────────────────────────────────────────────────
-        I1  IF ID EX ME WB
-        I2                 IF ID EX ME WB
-        I3                                IF ID EX ME WB
-        共 25 拍                                    ↑ 任何时刻只有 1 个部件在工作
+    { t: 'diagram', id: 'overlap', title: '同样 5 条指令，串行 vs 流水',
+      note: '两张图用同一把尺子，长度差就是加速比',
+      caption: String.raw`看第 5 拍那一列：==五个格子颜色各不相同==，
+        说明取指、译码、执行、访存、写回==五个部件在同一拍里全都在干活==。
+        串行时任何一拍都只有一个部件在动，其余四个在空等。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 352" role="img" aria-label="五条指令串行执行 25 拍与流水执行 9 拍的时空图对比">
+  <text class="cap" x="0" y="13">① 串行执行（多周期）：一条跑完 5 拍，下一条才进 —— 共 25 拍</text>
+  <text class="cap" x="50" y="35" text-anchor="end" dominant-baseline="central">I1</text>
+  <g class="n k"><rect x="58" y="24" width="23" height="22" rx="3"/><text class="bt xs" x="69.5" y="35.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n g"><rect x="83" y="24" width="23" height="22" rx="3"/><text class="bt xs" x="94.5" y="35.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <g class="n a"><rect x="108" y="24" width="23" height="22" rx="3"/><text class="bt xs" x="119.5" y="35.0" text-anchor="middle" dominant-baseline="central">EX</text></g>
+  <g class="n p"><rect x="133" y="24" width="23" height="22" rx="3"/><text class="bt xs" x="144.5" y="35.0" text-anchor="middle" dominant-baseline="central">ME</text></g>
+  <g class="n m"><rect x="158" y="24" width="23" height="22" rx="3"/><text class="bt xs" x="169.5" y="35.0" text-anchor="middle" dominant-baseline="central">WB</text></g>
+  <text class="cap" x="50" y="60" text-anchor="end" dominant-baseline="central">I2</text>
+  <g class="n k"><rect x="183" y="49" width="23" height="22" rx="3"/><text class="bt xs" x="194.5" y="60.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n g"><rect x="208" y="49" width="23" height="22" rx="3"/><text class="bt xs" x="219.5" y="60.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <g class="n a"><rect x="233" y="49" width="23" height="22" rx="3"/><text class="bt xs" x="244.5" y="60.0" text-anchor="middle" dominant-baseline="central">EX</text></g>
+  <g class="n p"><rect x="258" y="49" width="23" height="22" rx="3"/><text class="bt xs" x="269.5" y="60.0" text-anchor="middle" dominant-baseline="central">ME</text></g>
+  <g class="n m"><rect x="283" y="49" width="23" height="22" rx="3"/><text class="bt xs" x="294.5" y="60.0" text-anchor="middle" dominant-baseline="central">WB</text></g>
+  <text class="cap" x="50" y="85" text-anchor="end" dominant-baseline="central">I3</text>
+  <g class="n k"><rect x="308" y="74" width="23" height="22" rx="3"/><text class="bt xs" x="319.5" y="85.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n g"><rect x="333" y="74" width="23" height="22" rx="3"/><text class="bt xs" x="344.5" y="85.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <g class="n a"><rect x="358" y="74" width="23" height="22" rx="3"/><text class="bt xs" x="369.5" y="85.0" text-anchor="middle" dominant-baseline="central">EX</text></g>
+  <g class="n p"><rect x="383" y="74" width="23" height="22" rx="3"/><text class="bt xs" x="394.5" y="85.0" text-anchor="middle" dominant-baseline="central">ME</text></g>
+  <g class="n m"><rect x="408" y="74" width="23" height="22" rx="3"/><text class="bt xs" x="419.5" y="85.0" text-anchor="middle" dominant-baseline="central">WB</text></g>
+  <text class="cap" x="50" y="110" text-anchor="end" dominant-baseline="central">I4</text>
+  <g class="n k"><rect x="433" y="99" width="23" height="22" rx="3"/><text class="bt xs" x="444.5" y="110.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n g"><rect x="458" y="99" width="23" height="22" rx="3"/><text class="bt xs" x="469.5" y="110.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <g class="n a"><rect x="483" y="99" width="23" height="22" rx="3"/><text class="bt xs" x="494.5" y="110.0" text-anchor="middle" dominant-baseline="central">EX</text></g>
+  <g class="n p"><rect x="508" y="99" width="23" height="22" rx="3"/><text class="bt xs" x="519.5" y="110.0" text-anchor="middle" dominant-baseline="central">ME</text></g>
+  <g class="n m"><rect x="533" y="99" width="23" height="22" rx="3"/><text class="bt xs" x="544.5" y="110.0" text-anchor="middle" dominant-baseline="central">WB</text></g>
+  <text class="cap" x="50" y="135" text-anchor="end" dominant-baseline="central">I5</text>
+  <g class="n k"><rect x="558" y="124" width="23" height="22" rx="3"/><text class="bt xs" x="569.5" y="135.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n g"><rect x="583" y="124" width="23" height="22" rx="3"/><text class="bt xs" x="594.5" y="135.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <g class="n a"><rect x="608" y="124" width="23" height="22" rx="3"/><text class="bt xs" x="619.5" y="135.0" text-anchor="middle" dominant-baseline="central">EX</text></g>
+  <g class="n p"><rect x="633" y="124" width="23" height="22" rx="3"/><text class="bt xs" x="644.5" y="135.0" text-anchor="middle" dominant-baseline="central">ME</text></g>
+  <g class="n m"><rect x="658" y="124" width="23" height="22" rx="3"/><text class="bt xs" x="669.5" y="135.0" text-anchor="middle" dominant-baseline="central">WB</text></g>
 
-        流水执行：每拍都让一条新指令进来
-        ─────────────────────────────────────────────────────
-        拍   1   2   3   4   5   6   7   8   9
-        I1  IF  ID  EX  ME  WB
-        I2      IF  ID  EX  ME  WB
-        I3          IF  ID  EX  ME  WB
-        I4              IF  ID  EX  ME  WB
-        I5                  IF  ID  EX  ME  WB
-            └─ 装入 ─┘   ↑满载↑    └─ 排空 ─┘
-        共 9 拍                    ↑ 第 5 拍时，5 个部件【全部】在工作
-      ` },
+  <text class="cap" x="0" y="176">② 流水执行：每拍放一条新指令进来 —— 共 9 拍</text>
+  <text class="lb" x="69.5" y="192" text-anchor="middle">1</text>
+  <text class="lb" x="94.5" y="192" text-anchor="middle">2</text>
+  <text class="lb" x="119.5" y="192" text-anchor="middle">3</text>
+  <text class="lb" x="144.5" y="192" text-anchor="middle">4</text>
+  <text class="lb" x="169.5" y="192" text-anchor="middle">5</text>
+  <text class="lb" x="194.5" y="192" text-anchor="middle">6</text>
+  <text class="lb" x="219.5" y="192" text-anchor="middle">7</text>
+  <text class="lb" x="244.5" y="192" text-anchor="middle">8</text>
+  <text class="lb" x="269.5" y="192" text-anchor="middle">9</text>
+  <text class="cap" x="50" y="211" text-anchor="end" dominant-baseline="central">I1</text>
+  <g class="n k"><rect x="58" y="200" width="23" height="22" rx="3"/><text class="bt xs" x="69.5" y="211.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n g"><rect x="83" y="200" width="23" height="22" rx="3"/><text class="bt xs" x="94.5" y="211.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <g class="n a"><rect x="108" y="200" width="23" height="22" rx="3"/><text class="bt xs" x="119.5" y="211.0" text-anchor="middle" dominant-baseline="central">EX</text></g>
+  <g class="n p"><rect x="133" y="200" width="23" height="22" rx="3"/><text class="bt xs" x="144.5" y="211.0" text-anchor="middle" dominant-baseline="central">ME</text></g>
+  <g class="n m"><rect x="158" y="200" width="23" height="22" rx="3"/><text class="bt xs" x="169.5" y="211.0" text-anchor="middle" dominant-baseline="central">WB</text></g>
+  <text class="cap" x="50" y="236" text-anchor="end" dominant-baseline="central">I2</text>
+  <g class="n k"><rect x="83" y="225" width="23" height="22" rx="3"/><text class="bt xs" x="94.5" y="236.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n g"><rect x="108" y="225" width="23" height="22" rx="3"/><text class="bt xs" x="119.5" y="236.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <g class="n a"><rect x="133" y="225" width="23" height="22" rx="3"/><text class="bt xs" x="144.5" y="236.0" text-anchor="middle" dominant-baseline="central">EX</text></g>
+  <g class="n p"><rect x="158" y="225" width="23" height="22" rx="3"/><text class="bt xs" x="169.5" y="236.0" text-anchor="middle" dominant-baseline="central">ME</text></g>
+  <g class="n m"><rect x="183" y="225" width="23" height="22" rx="3"/><text class="bt xs" x="194.5" y="236.0" text-anchor="middle" dominant-baseline="central">WB</text></g>
+  <text class="cap" x="50" y="261" text-anchor="end" dominant-baseline="central">I3</text>
+  <g class="n k"><rect x="108" y="250" width="23" height="22" rx="3"/><text class="bt xs" x="119.5" y="261.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n g"><rect x="133" y="250" width="23" height="22" rx="3"/><text class="bt xs" x="144.5" y="261.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <g class="n a"><rect x="158" y="250" width="23" height="22" rx="3"/><text class="bt xs" x="169.5" y="261.0" text-anchor="middle" dominant-baseline="central">EX</text></g>
+  <g class="n p"><rect x="183" y="250" width="23" height="22" rx="3"/><text class="bt xs" x="194.5" y="261.0" text-anchor="middle" dominant-baseline="central">ME</text></g>
+  <g class="n m"><rect x="208" y="250" width="23" height="22" rx="3"/><text class="bt xs" x="219.5" y="261.0" text-anchor="middle" dominant-baseline="central">WB</text></g>
+  <text class="cap" x="50" y="286" text-anchor="end" dominant-baseline="central">I4</text>
+  <g class="n k"><rect x="133" y="275" width="23" height="22" rx="3"/><text class="bt xs" x="144.5" y="286.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n g"><rect x="158" y="275" width="23" height="22" rx="3"/><text class="bt xs" x="169.5" y="286.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <g class="n a"><rect x="183" y="275" width="23" height="22" rx="3"/><text class="bt xs" x="194.5" y="286.0" text-anchor="middle" dominant-baseline="central">EX</text></g>
+  <g class="n p"><rect x="208" y="275" width="23" height="22" rx="3"/><text class="bt xs" x="219.5" y="286.0" text-anchor="middle" dominant-baseline="central">ME</text></g>
+  <g class="n m"><rect x="233" y="275" width="23" height="22" rx="3"/><text class="bt xs" x="244.5" y="286.0" text-anchor="middle" dominant-baseline="central">WB</text></g>
+  <text class="cap" x="50" y="311" text-anchor="end" dominant-baseline="central">I5</text>
+  <g class="n k"><rect x="158" y="300" width="23" height="22" rx="3"/><text class="bt xs" x="169.5" y="311.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n g"><rect x="183" y="300" width="23" height="22" rx="3"/><text class="bt xs" x="194.5" y="311.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <g class="n a"><rect x="208" y="300" width="23" height="22" rx="3"/><text class="bt xs" x="219.5" y="311.0" text-anchor="middle" dominant-baseline="central">EX</text></g>
+  <g class="n p"><rect x="233" y="300" width="23" height="22" rx="3"/><text class="bt xs" x="244.5" y="311.0" text-anchor="middle" dominant-baseline="central">ME</text></g>
+  <g class="n m"><rect x="258" y="300" width="23" height="22" rx="3"/><text class="bt xs" x="269.5" y="311.0" text-anchor="middle" dominant-baseline="central">WB</text></g>
+  <path class="gd" d="M170,196 V330"/>
+  <text class="lb" x="176" y="344">↑ 第 5 拍：五个段同时在工作（满载）</text>
+</svg>` },
 
     { t: 'key', id: 'not-faster', title: '★★ 流水线没有让任何一条指令变快', c: String.raw`
       这是整节最容易误解、也最容易被出成判断题的一句话。
@@ -300,16 +362,34 @@ KM.page({
     /* ---------------- 结构冒险 ---------------- */
     { t: 'h', id: 'structural', c: '3.1 结构冒险' },
 
-    { t: 'code', id: 'struct-conflict', title: '典型冲突：取指与访存撞在一起', lang: '',
-      c: String.raw`
-        拍    1    2    3    4    5    6    7
-        I1   IF   ID   EX  MEM   WB
-        I4                  IF   ID   EX  MEM
-                            ↑
-                        第 4 拍：I1 要【访问数据存储器】
-                                 I4 要【访问指令存储器】
-                        如果只有一个存储器 ──▶ 冲突！
-      ` },
+    { t: 'diagram', id: 'struct-conflict', title: '典型冲突：取指与访存撞在一起',
+      note: '红色那一列就是冲突点',
+      caption: String.raw`只要==指令和数据放在同一个存储器==里，这一拍就只能满足一个人。
+        解法要么把存储器一分为二（哈佛结构 / 分开的指令 Cache 与数据 Cache），要么让后来的那条停一拍。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 148" role="img" aria-label="第 4 拍 I1 访存与 I4 取指撞在同一个存储器上">
+  <text class="lb" x="101" y="18" text-anchor="middle">1</text>
+  <text class="lb" x="165" y="18" text-anchor="middle">2</text>
+  <text class="lb" x="229" y="18" text-anchor="middle">3</text>
+  <text class="lb" x="293" y="18" text-anchor="middle">4</text>
+  <text class="lb" x="357" y="18" text-anchor="middle">5</text>
+  <text class="lb" x="421" y="18" text-anchor="middle">6</text>
+  <text class="lb" x="485" y="18" text-anchor="middle">7</text>
+  <text class="cap" x="62" y="41" text-anchor="end" dominant-baseline="central">I1</text>
+  <g class="n k"><rect x="70" y="28" width="61" height="26" rx="3"/><text class="bt sm" x="100.5" y="41.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n g"><rect x="134" y="28" width="61" height="26" rx="3"/><text class="bt sm" x="164.5" y="41.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <g class="n a"><rect x="198" y="28" width="61" height="26" rx="3"/><text class="bt sm" x="228.5" y="41.0" text-anchor="middle" dominant-baseline="central">EX</text></g>
+  <g class="n r"><rect x="262" y="28" width="61" height="26" rx="3"/><text class="bt sm" x="292.5" y="41.0" text-anchor="middle" dominant-baseline="central">MEM</text></g>
+  <g class="n m"><rect x="326" y="28" width="61" height="26" rx="3"/><text class="bt sm" x="356.5" y="41.0" text-anchor="middle" dominant-baseline="central">WB</text></g>
+  <text class="cap" x="62" y="75" text-anchor="end" dominant-baseline="central">I4</text>
+  <g class="n r"><rect x="262" y="62" width="61" height="26" rx="3"/><text class="bt sm" x="292.5" y="75.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n g"><rect x="326" y="62" width="61" height="26" rx="3"/><text class="bt sm" x="356.5" y="75.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <g class="n a"><rect x="390" y="62" width="61" height="26" rx="3"/><text class="bt sm" x="420.5" y="75.0" text-anchor="middle" dominant-baseline="central">EX</text></g>
+  <g class="n p"><rect x="454" y="62" width="61" height="26" rx="3"/><text class="bt sm" x="484.5" y="75.0" text-anchor="middle" dominant-baseline="central">MEM</text></g>
+  <path class="gd" d="M293,24 V92"/>
+  <text class="lb" x="293" y="108" text-anchor="middle">第 4 拍</text>
+  <text class="cap" x="0" y="132">I1 要访问【数据存储器】，I4 要访问【指令存储器】——只有一个存储器就撞车</text>
+</svg>` },
 
     { t: 'key', id: 'struct-fix', title: '三种解决办法', c: String.raw`
       | 办法 | 怎么做 | 代价 |
@@ -357,23 +437,51 @@ KM.page({
       [寄存器重命名](#/co/cpu/pipeline?at=ooo)可以直接消掉它们。
     ` },
 
-    { t: 'code', id: 'raw-example', title: '一个 RAW 冒险的完整时空图（无转发）', lang: '',
-      c: String.raw`
-        I1:  add  R1, R2, R3     ← 第 5 拍才把结果写进 R1
-        I2:  sub  R4, R1, R5     ← 第 3 拍就要读 R1
+    { t: 'diagram', id: 'raw-example', title: '一个 RAW 冒险的完整时空图（无转发）',
+      note: '$\\texttt{I1}$ 第 5 拍才写回，$\\texttt{I2}$ 第 3 拍就要读',
+      caption: String.raw`✱ 是气泡（bubble / stall）。停两拍之后，$\texttt{I2}$ 的译码段正好落在第 5 拍：
+        ==寄存器堆前半周期写、后半周期读==，于是刚好读到新值。
+        如果没有"前写后读"这个前提，就得停 3 拍。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 226" role="img" aria-label="RAW 冒险：不停顿会读到旧值，停顿两拍后正确">
+  <text class="cap" x="0" y="13">① 不停顿：I2 在第 3 拍读 R1，读到的是旧值</text>
+  <text class="lb" x="98" y="28" text-anchor="middle">1</text>
+  <text class="lb" x="156" y="28" text-anchor="middle">2</text>
+  <text class="lb" x="214" y="28" text-anchor="middle">3</text>
+  <text class="lb" x="272" y="28" text-anchor="middle">4</text>
+  <text class="lb" x="330" y="28" text-anchor="middle">5</text>
+  <text class="lb" x="388" y="28" text-anchor="middle">6</text>
+  <text class="lb" x="446" y="28" text-anchor="middle">7</text>
+  <text class="lb" x="504" y="28" text-anchor="middle">8</text>
+  <text class="cap" x="62" y="48" text-anchor="end" dominant-baseline="central">I1</text>
+  <g class="n k"><rect x="70" y="36" width="55" height="24" rx="3"/><text class="bt sm" x="97.5" y="48.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n g"><rect x="128" y="36" width="55" height="24" rx="3"/><text class="bt sm" x="155.5" y="48.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <g class="n a"><rect x="186" y="36" width="55" height="24" rx="3"/><text class="bt sm" x="213.5" y="48.0" text-anchor="middle" dominant-baseline="central">EX</text></g>
+  <g class="n p"><rect x="244" y="36" width="55" height="24" rx="3"/><text class="bt sm" x="271.5" y="48.0" text-anchor="middle" dominant-baseline="central">MEM</text></g>
+  <g class="n m"><rect x="302" y="36" width="55" height="24" rx="3"/><text class="bt sm" x="329.5" y="48.0" text-anchor="middle" dominant-baseline="central">WB</text></g>
+  <text class="cap" x="62" y="78" text-anchor="end" dominant-baseline="central">I2</text>
+  <g class="n k"><rect x="128" y="66" width="55" height="24" rx="3"/><text class="bt sm" x="155.5" y="78.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n r"><rect x="186" y="66" width="55" height="24" rx="3"/><text class="bt sm" x="213.5" y="78.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <text class="lb" x="248" y="82">✗ 此刻 R1 还是旧值 —— I1 要到第 5 拍才写回</text>
 
-        拍     1    2    3    4    5    6    7    8
-        I1    IF   ID   EX  MEM   WB
-                                  └─ 此刻 R1 才有新值
-        I2         IF   ID ←── 第 3 拍读 R1，读到的是【旧值】✗
-
-        必须停顿（采用寄存器堆"前写后读"时停 2 拍）：
-        拍     1    2    3    4    5    6    7    8
-        I1    IF   ID   EX  MEM   WB
-        I2         IF   ✱    ✱   ID   EX  MEM   WB
-                                  ↑ 第 5 拍：前半周期 I1 写、后半周期 I2 读 ✓
-        （✱ = 气泡 bubble / 阻塞 stall）
-      ` },
+  <text class="cap" x="0" y="128">② 停顿 2 拍（寄存器堆「前写后读」）</text>
+  <text class="cap" x="62" y="160" text-anchor="end" dominant-baseline="central">I1</text>
+  <g class="n k"><rect x="70" y="148" width="55" height="24" rx="3"/><text class="bt sm" x="97.5" y="160.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n g"><rect x="128" y="148" width="55" height="24" rx="3"/><text class="bt sm" x="155.5" y="160.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <g class="n a"><rect x="186" y="148" width="55" height="24" rx="3"/><text class="bt sm" x="213.5" y="160.0" text-anchor="middle" dominant-baseline="central">EX</text></g>
+  <g class="n p"><rect x="244" y="148" width="55" height="24" rx="3"/><text class="bt sm" x="271.5" y="160.0" text-anchor="middle" dominant-baseline="central">MEM</text></g>
+  <g class="n m"><rect x="302" y="148" width="55" height="24" rx="3"/><text class="bt sm" x="329.5" y="160.0" text-anchor="middle" dominant-baseline="central">WB</text></g>
+  <text class="cap" x="62" y="190" text-anchor="end" dominant-baseline="central">I2</text>
+  <g class="n k"><rect x="128" y="178" width="55" height="24" rx="3"/><text class="bt sm" x="155.5" y="190.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n m"><rect x="186" y="178" width="55" height="24" rx="3"/><text class="bt sm" x="213.5" y="190.0" text-anchor="middle" dominant-baseline="central">✱</text></g>
+  <g class="n m"><rect x="244" y="178" width="55" height="24" rx="3"/><text class="bt sm" x="271.5" y="190.0" text-anchor="middle" dominant-baseline="central">✱</text></g>
+  <g class="n g"><rect x="302" y="178" width="55" height="24" rx="3"/><text class="bt sm" x="329.5" y="190.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <g class="n a"><rect x="360" y="178" width="55" height="24" rx="3"/><text class="bt sm" x="387.5" y="190.0" text-anchor="middle" dominant-baseline="central">EX</text></g>
+  <g class="n p"><rect x="418" y="178" width="55" height="24" rx="3"/><text class="bt sm" x="445.5" y="190.0" text-anchor="middle" dominant-baseline="central">MEM</text></g>
+  <g class="n m"><rect x="476" y="178" width="55" height="24" rx="3"/><text class="bt sm" x="503.5" y="190.0" text-anchor="middle" dominant-baseline="central">WB</text></g>
+  <path class="gd" d="M330,144 V206"/>
+  <text class="lb" x="330" y="220" text-anchor="middle">第 5 拍：I1 写 / I2 读，✓</text>
+</svg>` },
 
     { t: 'compare', id: 'distance-table', title: '★ 相关距离与停顿拍数（结论要能直接说出来）',
       cols: ['相关距离', '例子', '无转发（前写后读）', '有转发'],
@@ -467,27 +575,38 @@ KM.page({
     /* ---------------- 控制冒险 ---------------- */
     { t: 'h', id: 'control-hazard', c: '3.3 控制冒险' },
 
-    { t: 'code', id: 'branch-penalty', title: '分支惩罚：判断出结果之前，已经取错了几条', lang: '',
-      c: String.raw`
-        I1:  beq  R1, R2, LABEL      ← 转不转？要到某一段才知道
-        I2:  ...                      ← 已经被取进来了
-        I3:  ...                      ← 也被取进来了
-        I4:  ...                      ← 还被取进来了
+    { t: 'diagram', id: 'branch-penalty', title: '分支惩罚：判断出结果之前，已经取错了几条',
+      note: '红格 = 已经进流水线又被作废的指令',
+      caption: String.raw`==分支惩罚 = 判出结果所在的段号 $-\;1$==。
+        所以优化方向只有一个：**把"转不转"这件事往前挪**——
+        提前到 ID 段判断，惩罚立刻从 3 拍降到 1 拍。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 246" role="img" aria-label="分支在 MEM 段判断惩罚三拍，提前到 ID 段判断只惩罚一拍">
+  <text class="cap" x="0" y="14">① 分支在 MEM 段（第 4 拍）才判出来 —— 惩罚 3 拍</text>
+  <text class="cap" x="62" y="42" text-anchor="end" dominant-baseline="central">I1</text>
+  <g class="n k"><rect x="70" y="30" width="61" height="24" rx="3"/><text class="bt sm" x="100.5" y="42.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n g"><rect x="134" y="30" width="61" height="24" rx="3"/><text class="bt sm" x="164.5" y="42.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <g class="n a"><rect x="198" y="30" width="61" height="24" rx="3"/><text class="bt sm" x="228.5" y="42.0" text-anchor="middle" dominant-baseline="central">EX</text></g>
+  <g class="n p"><rect x="262" y="30" width="61" height="24" rx="3"/><text class="bt sm" x="292.5" y="42.0" text-anchor="middle" dominant-baseline="central">MEM</text></g>
+  <text class="cap" x="62" y="70" text-anchor="end" dominant-baseline="central">I2</text>
+  <g class="n r"><rect x="134" y="58" width="61" height="24" rx="3"/><text class="bt sm" x="164.5" y="70.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n r"><rect x="198" y="58" width="61" height="24" rx="3"/><text class="bt sm" x="228.5" y="70.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <g class="n r"><rect x="262" y="58" width="61" height="24" rx="3"/><text class="bt sm" x="292.5" y="70.0" text-anchor="middle" dominant-baseline="central">EX</text></g>
+  <text class="cap" x="62" y="98" text-anchor="end" dominant-baseline="central">I3</text>
+  <g class="n r"><rect x="198" y="86" width="61" height="24" rx="3"/><text class="bt sm" x="228.5" y="98.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n r"><rect x="262" y="86" width="61" height="24" rx="3"/><text class="bt sm" x="292.5" y="98.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <text class="cap" x="62" y="126" text-anchor="end" dominant-baseline="central">I4</text>
+  <g class="n r"><rect x="262" y="114" width="61" height="24" rx="3"/><text class="bt sm" x="292.5" y="126.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <text class="lb" x="336" y="150">已经取进来的三条全部作废</text>
 
-        若分支在 MEM 段（第 4 拍）才判断出来：
-        拍     1    2    3    4    5
-        I1    IF   ID   EX  MEM ←── 到这里才知道要跳
-        I2         IF   ID   EX  ← 作废
-        I3              IF   ID  ← 作废
-        I4                   IF  ← 作废
-                                    ★ 分支惩罚 = 3 拍
-
-        若把分支判断【提前到 ID 段】（第 2 拍）：
-        拍     1    2    3
-        I1    IF   ID ←── 这里就知道了
-        I2         IF     ← 只作废 1 条
-                                    ★ 分支惩罚 = 1 拍
-      ` },
+  <text class="cap" x="0" y="164">② 把判断提前到 ID 段（第 2 拍）—— 惩罚 1 拍</text>
+  <text class="cap" x="62" y="192" text-anchor="end" dominant-baseline="central">I1</text>
+  <g class="n k"><rect x="70" y="180" width="61" height="24" rx="3"/><text class="bt sm" x="100.5" y="192.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <g class="n g"><rect x="134" y="180" width="61" height="24" rx="3"/><text class="bt sm" x="164.5" y="192.0" text-anchor="middle" dominant-baseline="central">ID</text></g>
+  <text class="cap" x="62" y="220" text-anchor="end" dominant-baseline="central">I2</text>
+  <g class="n r"><rect x="134" y="208" width="61" height="24" rx="3"/><text class="bt sm" x="164.5" y="220.0" text-anchor="middle" dominant-baseline="central">IF</text></g>
+  <text class="lb" x="208" y="228">只作废一条</text>
+</svg>` },
 
     { t: 'key', id: 'branch-fix', title: '控制冒险的四类解决办法', c: String.raw`
       **① 提前判断、提前生成转移地址** —— ==最直接的一招==

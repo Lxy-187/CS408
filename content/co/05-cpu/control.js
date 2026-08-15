@@ -27,27 +27,47 @@ KM.page({
       控制器的全部职责，就是产生这些线上的电平。
     ` },
 
-    { t: 'code', id: 'cu-io', title: '控制器的输入与输出（把它当一个黑盒先看清接口）', lang: '',
-      c: String.raw`
-                    输入                                  输出
-        ┌────────────────────────────┐          ┌──────────────────────────┐
-        │ ① 指令的操作码 OP(IR)        │          │                          │
-        │    ——"现在要执行哪条指令"    │          │   一大把 控制信号（微命令）│
-        │                            │          │                          │
-        │ ② 时序信号（节拍 T0 T1 …）  │──▶ 控制器 ──▶│  PC→MAR、1→R、MDR→IR、  │
-        │    ——"现在是这条指令的第几步"│          │  ALU 的功能选择、           │
-        │                            │          │  各个多路选择器的选择端、    │
-        │ ③ 状态/标志（ZF CF OF SF）  │          │  寄存器的写使能 …            │
-        │    ——"上一步算出来的结果如何"│          │                          │
-        │                            │          │                          │
-        │ ④ 外来信号（中断请求、DMA） │          │                          │
-        └────────────────────────────┘          └──────────────────────────┘
+    { t: 'diagram', id: 'cu-io', title: '控制器的输入与输出（先把它当一个黑盒看清接口）',
+      note: '四类输入进去，一大把控制信号出来',
+      caption: String.raw`一句话概括这张图：==控制信号 $=f(\,$指令,\ 第几步,\ 状态标志$\,)$==。
+        硬布线用**门电路**实现这个 $f$，微程序用**查表**实现这个 $f$ ——
+        整节剩下的内容都只是在讲这两种实现。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 244" role="img" aria-label="控制器的四类输入与控制信号输出">
+  <g class="n k"><rect x="16" y="16" width="210" height="40" rx="7"/>
+    <text class="bt sm" x="121" y="31" text-anchor="middle" dominant-baseline="central">① 操作码 OP(IR)</text>
+    <text class="bs" x="121" y="47" text-anchor="middle" dominant-baseline="central">现在要执行哪条指令</text></g>
+  <g class="n k"><rect x="16" y="60" width="210" height="40" rx="7"/>
+    <text class="bt sm" x="121" y="75" text-anchor="middle" dominant-baseline="central">② 时序信号 T0 T1 …</text>
+    <text class="bs" x="121" y="91" text-anchor="middle" dominant-baseline="central">现在是这条指令的第几步</text></g>
+  <g class="n k"><rect x="16" y="104" width="210" height="40" rx="7"/>
+    <text class="bt sm" x="121" y="119" text-anchor="middle" dominant-baseline="central">③ 状态标志 ZF CF OF SF</text>
+    <text class="bs" x="121" y="135" text-anchor="middle" dominant-baseline="central">上一步算出来的结果如何</text></g>
+  <g class="n k"><rect x="16" y="148" width="210" height="40" rx="7"/>
+    <text class="bt sm" x="121" y="163" text-anchor="middle" dominant-baseline="central">④ 外来信号 中断 / DMA</text>
+    <text class="bs" x="121" y="179" text-anchor="middle" dominant-baseline="central">外面出了什么事</text></g>
 
-        ★ 控制器本质上就是一个函数：
-             控制信号 = f( 指令, 第几步, 状态标志 )
-          硬布线：用 门电路 实现这个 f
-          微程序：用 查表  实现这个 f
-      ` },
+  <path class="ar plain" d="M226,36 H248"/>
+  <path class="ar plain" d="M226,80 H248"/>
+  <path class="ar plain" d="M226,124 H248"/>
+  <path class="ar plain" d="M226,168 H248"/>
+  <path class="ar plain" d="M248,36 V168"/>
+  <path class="ar" d="M248,102 H274"/>
+
+  <g class="n p"><rect x="278" y="72" width="132" height="60" rx="8"/>
+    <text class="bt" x="344" y="93" text-anchor="middle" dominant-baseline="central">控制器 CU</text>
+    <text class="bs" x="344" y="113" text-anchor="middle" dominant-baseline="central">门电路 或 查表</text></g>
+  <path class="ar" d="M410,102 H444"/>
+
+  <g class="n a"><rect x="448" y="46" width="236" height="112" rx="8"/>
+    <text class="bt sm" x="566" y="66" text-anchor="middle" dominant-baseline="central">一大把控制信号（微命令）</text>
+    <text class="bs" x="566" y="92" text-anchor="middle" dominant-baseline="central">PC→MAR　1→R　MDR→IR</text>
+    <text class="bs" x="566" y="112" text-anchor="middle" dominant-baseline="central">ALU 功能选择 · MUX 选择端</text>
+    <text class="bs" x="566" y="132" text-anchor="middle" dominant-baseline="central">各个寄存器的写使能 …</text></g>
+
+  <text class="cap" x="0" y="216">数据通路本身没有任何主动性：每一个「动一下」，都要有一根控制线在那一拍变成 1</text>
+  <text class="lb" x="0" y="236">控制器的全部职责，就是产生这些线上的电平</text>
+</svg>` },
 
     { t: 'key', id: 'the-whole-point', title: '★ 一句话看穿这一整节', c: String.raw`
       把一条指令的执行过程画成一张表：==行是时间步，列是每一根控制线，格子里填 0 或 1==。
@@ -144,28 +164,50 @@ KM.page({
       ==那就把这个函数写成布尔表达式，用与门或门搭出来==。
     ` },
 
-    { t: 'code', id: 'hardwired-struct', title: '硬布线控制器的结构', lang: '',
-      c: String.raw`
-                  ┌──────────┐
-        IR 的操作码 │ 指令译码器 │──── I_ADD ─┐
-        ──────────▶│  n → 2ⁿ   │──── I_SUB ─┤
-                  └──────────┘──── I_LDA ─┤
-                                    …     │
-                  ┌──────────┐            │      ┌──────────────┐
-        时钟 ─────▶│ 节拍发生器 │──── T0 ────┼─────▶│              │──▶ C1
-                  │（环形计数器）│──── T1 ────┤      │  组合逻辑网络  │──▶ C2
-                  └──────────┘──── T2 ────┤      │  （一堆与门或门）│──▶ C3
-                                          │      │              │──▶ …
-                  ┌──────────┐            │      │              │──▶ Cm
-        状态标志 ──▶│ FE IND    │──── FE ────┤      └──────────────┘
-        中断请求    │ EX  INT   │──── EX ────┘             ▲
-                  └──────────┘                          │
-                                             标志位 ZF/CF/OF ┘
+    { t: 'diagram', id: 'hardwired-struct', title: '硬布线控制器的结构',
+      note: '左边三路输入，中间一大块组合逻辑，右边一把控制信号',
+      caption: String.raw`中间那块==组合逻辑网络就是全部的设计工作量==，也是"硬布线"这个名字的由来——
+        它是用导线硬接出来的。==要改一条指令，就得重新设计、重新布线==，
+        这也正是[为什么 RISC 用硬布线、CISC 早年用微程序](#/co/cpu/control?at=why-risc-hardwired)。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 232" role="img" aria-label="硬布线控制器：指令译码器、节拍发生器、状态标志送入组合逻辑网络产生控制信号">
+  <text class="lb" x="84" y="42" text-anchor="end">OP(IR)</text>
+  <g class="n k"><rect x="90" y="20" width="160" height="44" rx="7"/>
+    <text class="bt sm" x="170" y="37" text-anchor="middle" dominant-baseline="central">指令译码器</text>
+    <text class="bs" x="170" y="54" text-anchor="middle" dominant-baseline="central">n → 2ⁿ</text></g>
 
-        ★ 中间那个"组合逻辑网络"就是全部的设计工作量，
-          也是"硬布线"这个名字的由来 —— 它是用导线硬接出来的，
-          ==要改一条指令，就得重新设计并重新布线==。
-      ` },
+  <text class="lb" x="84" y="110" text-anchor="end">时钟</text>
+  <g class="n k"><rect x="90" y="88" width="160" height="44" rx="7"/>
+    <text class="bt sm" x="170" y="105" text-anchor="middle" dominant-baseline="central">节拍发生器</text>
+    <text class="bs" x="170" y="122" text-anchor="middle" dominant-baseline="central">环形计数器</text></g>
+
+  <text class="lb" x="84" y="178" text-anchor="end">外来信号</text>
+  <g class="n k"><rect x="90" y="156" width="160" height="44" rx="7"/>
+    <text class="bt sm" x="170" y="173" text-anchor="middle" dominant-baseline="central">标志与请求</text>
+    <text class="bs" x="170" y="190" text-anchor="middle" dominant-baseline="central">ZF CF OF · INT</text></g>
+
+  <path class="ar" d="M250,42 H330 V70 H392"/>
+  <text class="lb mono" x="256" y="36">I_ADD I_SUB I_LDA …</text>
+  <path class="ar" d="M250,110 H392"/>
+  <text class="lb mono" x="256" y="104">T0 T1 T2 …</text>
+  <path class="ar" d="M250,178 H330 V150 H392"/>
+  <text class="lb mono" x="256" y="172">FE IND EX INT</text>
+
+  <g class="n g"><rect x="396" y="48" width="176" height="124" rx="8"/>
+    <text class="bt" x="484" y="98" text-anchor="middle" dominant-baseline="central">组合逻辑网络</text>
+    <text class="bs" x="484" y="122" text-anchor="middle" dominant-baseline="central">一堆与门 / 或门</text></g>
+
+  <path class="ar em" d="M572,72 H636"/>
+  <path class="ar em" d="M572,98 H636"/>
+  <path class="ar em" d="M572,124 H636"/>
+  <path class="ar em" d="M572,150 H636"/>
+  <text class="lb mono em" x="642" y="76">C1</text>
+  <text class="lb mono em" x="642" y="102">C2</text>
+  <text class="lb mono em" x="642" y="128">C3</text>
+  <text class="lb mono em" x="642" y="154">Cm</text>
+
+  <text class="cap" x="0" y="222">每一根 Ci 都是一个布尔表达式：把「哪条指令 · 第几拍 · 什么标志」与起来，再把需要它的场合或起来</text>
+</svg>` },
 
     { t: 'key', id: 'boolean-expr', title: '★ 一个控制信号的表达式长什么样（会写这个就懂硬布线了）', c: String.raw`
       以"发出读命令 $1\to\texttt{R}$"这根线为例，问：==它在哪些时刻该是 1？==

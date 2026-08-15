@@ -309,33 +309,40 @@ KM.page({
     /* ================================================================== */
     { t: 'h', id: 'handshake', c: '四、异步定时的三种握手' },
 
-    { t: 'code', id: 'three-handshake', title: '★★ 不互锁 / 半互锁 / 全互锁', lang: '',
-      note: '看"撤销信号时要不要等对方"，就能立刻判断是哪一种',
-      c: String.raw`
-        ① 不互锁（双方都不等）
-        ─────────────────────────────────────
-        请求  ──┐              ┌──        主设备发完请求，【过一段时间自己撤】
-                └──────────────┘          不管从设备回没回
-        回答  ──────┐      ┌──────        从设备回答后，【过一段时间自己撤】
-                    └──────┘              不管主设备撤没撤
-        ★ 最快，最不可靠（可能主设备已经撤了，从设备还没反应过来）
+    { t: 'diagram', id: 'three-handshake', title: '★★ 不互锁 / 半互锁 / 全互锁',
+      note: '看「撤销信号时要不要等对方」，立刻能判断是哪一种',
+      caption: String.raw`==判据只有一条：撤销的时机由谁决定。==
+        自己定时撤 = 不互锁；等对方的信号才撤 = 互锁。
+        两条线各判一次，就得到"不 / 半 / 全"三种组合。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 340" role="img" aria-label="不互锁、半互锁、全互锁三种异步握手的请求与回答波形">
+  <text class="cap" x="0" y="14">① 不互锁：双方都不等对方</text>
+  <text class="lb" x="88" y="42" text-anchor="end" dominant-baseline="central">请求</text>
+  <path class="wv" d="M96,53 H140 V31 H300 V53 H560"/>
+  <text class="lb" x="88" y="76" text-anchor="end" dominant-baseline="central">回答</text>
+  <path class="wv" d="M96,87 H210 V65 H270 V87 H560"/>
+  <text class="lb" x="96" y="102">请求过一段时间自己撤，回答也是自己撤　→　最快，最不可靠</text>
 
-        ② 半互锁（主等从，从不等主）
-        ─────────────────────────────────────
-        请求  ──┐          ┌────          主设备【必须等到回答】才撤请求 ← 互锁
-                └──────────┘
-        回答  ──────┐   ┌───────          从设备回答后【过一段时间自己撤】← 不互锁
-                    └───┘
-        ★ 折中
+  <text class="cap" x="0" y="124">② 半互锁：主等从，从不等主</text>
+  <text class="lb" x="88" y="152" text-anchor="end" dominant-baseline="central">请求</text>
+  <path class="wv" d="M96,163 H140 V141 H380 V163 H560"/>
+  <text class="lb" x="88" y="186" text-anchor="end" dominant-baseline="central">回答</text>
+  <path class="wv" d="M96,197 H250 V175 H330 V197 H560"/>
+  <text class="lb" x="96" y="212">请求必须等到回答有效才撤；回答仍是自己撤　→　折中</text>
+  <path class="ar dash" d="M250,175 L380,163"/>
+  <text class="lb" x="315" y="165" text-anchor="middle">等到回答才撤请求</text>
 
-        ③ 全互锁（互相等）
-        ─────────────────────────────────────
-        请求  ──┐          ┌────          主设备【必须等到回答】才撤请求 ← 互锁
-                └──────────┘
-        回答  ──────┐      └──┐           从设备【必须等到请求撤销】才撤回答 ← 互锁
-                    └─────────┘
-        ★ 最可靠，最慢（每一步都要确认）
-      ` },
+  <text class="cap" x="0" y="234">③ 全互锁：互相等</text>
+  <text class="lb" x="88" y="262" text-anchor="end" dominant-baseline="central">请求</text>
+  <path class="wv" d="M96,273 H140 V251 H380 V273 H560"/>
+  <text class="lb" x="88" y="296" text-anchor="end" dominant-baseline="central">回答</text>
+  <path class="wv" d="M96,307 H250 V285 H450 V307 H560"/>
+  <text class="lb" x="96" y="322">请求等回答有效、回答等请求撤销　→　最可靠，最慢</text>
+  <path class="ar dash" d="M250,285 L380,273"/>
+  <text class="lb" x="315" y="275" text-anchor="middle">等回答</text>
+  <path class="ar dash" d="M380,273 L450,285"/>
+  <text class="lb" x="415" y="275" text-anchor="middle">等请求撤</text>
+</svg>` },
 
     { t: 'key', id: 'handshake-rule', title: '一句话判断是哪一种', c: String.raw`
       ==只看"撤销信号的时候，要不要等对方"==：
