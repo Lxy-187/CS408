@@ -404,7 +404,10 @@ KM.tree([
       {
         id: 'essays', title: '关于计算机科学',
         topics: [
-          { id: 'placeholder', title: '（待补充）' },
+          { id: 'ai-boundary', title: '什么样的内容适合交给 AI，什么样的不适合',
+            file: 'content/notes/ai-boundary.js' },
+          { id: 'ai-and-jobs', title: '为什么 AI 还没有大规模取代工作',
+            file: 'content/notes/ai-and-jobs.js' },
         ],
       },
     ],
