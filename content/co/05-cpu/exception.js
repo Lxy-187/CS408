@@ -10,7 +10,7 @@ KM.page({
   title: '异常与中断机制',
   subtitle: '中断是 CPU 唯一的「被动入口」。这一页只回答两件事：**谁能打断 CPU**，以及**被打断的那一拍硬件替你做了什么**',
   tags: ['高频', '必考', '概念辨析'],
-  updated: '2026-08-14',
+  updated: '2026-08-16',
 
   blocks: [
 
@@ -213,6 +213,47 @@ KM.page({
 </svg>
 ` },
 
+    { t: 'diagram', id: 'sample-timing', title: '★ 细到时钟周期：请求是在哪一拍被"拍下来"的',
+      note: '采样在末拍，判断在下一个机器周期的入口',
+      caption: String.raw`==采样和判断不在同一拍==：末拍先把 $\texttt{INTR}\cdot\texttt{IF}$ 的结果锁进一个触发器（**中断查询触发器**），下一个机器周期一开始才读这个锁存值决定去哪。所以"当前指令执行完才响应"这句话，在硬件上的落点就是==这一个边沿==。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 232" role="img" aria-label="末拍锁存中断请求，下一个机器周期入口判断走取指周期还是中断周期">
+  <g class="n m"><rect x="20" y="16" width="200" height="44" rx="7"/><text class="bt xs" x="120" y="33" text-anchor="middle" dominant-baseline="central">T1</text><text class="bs" x="120" y="50" text-anchor="middle" dominant-baseline="central">执行本条指令的微操作</text></g>
+  <path class="ar" d="M224,38 H246"/>
+  <g class="n m"><rect x="250" y="16" width="200" height="44" rx="7"/><text class="bt xs" x="350" y="33" text-anchor="middle" dominant-baseline="central">T2 … Tn-1</text><text class="bs" x="350" y="50" text-anchor="middle" dominant-baseline="central">该访存的访存，该运算的运算</text></g>
+  <path class="ar" d="M454,38 H476"/>
+  <g class="n a"><rect x="480" y="16" width="200" height="44" rx="7"/><text class="bt xs" x="580" y="33" text-anchor="middle" dominant-baseline="central">Tlast（末拍）</text><text class="bs" x="580" y="50" text-anchor="middle" dominant-baseline="central">请求信号在此边沿被锁存</text></g>
+  <path class="ar" d="M580,60 V76 H350 V86"/>
+  <g class="n k"><rect x="230" y="90" width="240" height="46" rx="7"/><text class="bt xs" x="350" y="107" text-anchor="middle" dominant-baseline="central">下一个机器周期的入口判断</text><text class="bs" x="350" y="124" text-anchor="middle" dominant-baseline="central">读锁存值，决定走哪条路</text></g>
+  <text class="lb" x="250" y="150" text-anchor="middle">锁存值为 0</text>
+  <path class="ar" d="M350,136 V156 H185 V166"/>
+  <text class="lb em" x="452" y="150" text-anchor="middle">锁存值为 1</text>
+  <path class="ar em" d="M350,136 V156 H515 V166"/>
+  <g class="n m"><rect x="60" y="170" width="250" height="48" rx="7"/><text class="bt xs" x="185" y="187" text-anchor="middle" dominant-baseline="central">进入取指周期 FT</text><text class="bs" x="185" y="204" text-anchor="middle" dominant-baseline="central">按正常流程取下一条指令</text></g>
+  <g class="n p"><rect x="390" y="170" width="250" height="48" rx="7"/><text class="bt xs" x="515" y="187" text-anchor="middle" dominant-baseline="central">进入中断周期 INT</text><text class="bs" x="515" y="204" text-anchor="middle" dominant-baseline="central">CU 发出中断隐指令序列</text></g>
+</svg>
+` },
+
+    { t: 'key', id: 'query-ff', title: '为什么非要先锁进一个触发器，不能直接看那根线', c: String.raw`
+      三个理由，一层比一层硬：
+
+      1. **请求线是异步的。** 外设什么时候拉高 $\texttt{INTR}$，和 CPU 的时钟==毫无关系==。
+         如果让 CU 的组合逻辑直接吃这根线，==同一拍之内它可能先看到 0 后看到 1==，
+         下一步该进 FT 还是进 INT 会摇摆不定。
+      2. **一条指令只允许采样一次。** 锁存之后，这条指令的去向就==定死了==——
+         要么这条之后进中断，要么等下一条。==不会出现"走到一半改主意"==。
+      3. **这就是[锁存把连续变化切成离散快照](#/co/cpu/fsm?at=why-latch)那件事的又一例。**
+         CU 是状态机，状态机的输入必须在==确定的边沿==上取样，
+         这是[整台机器同步工作](#/co/cpu/fsm?at=same-edge)的前提。
+
+      **两个能直接换分的推论：**
+
+      - 请求==在末拍之后才到==的话，这一拍就没采到，==得再等整整一条指令==——
+        这正是[中断响应时间](#/co/io/interrupt?at=time-def)里"当前指令剩余执行时间"那一项的来源；
+      - ==没有请求时 INT 周期直接被跳过==，因为锁存值就是 0，
+        所以"每条指令都要经过中断周期"是错的。
+    ` },
+
     { t: 'key', id: 'why-instruction-end', title: '★ 为什么必须等指令执行完', c: String.raw`
       三个理由，答简答题按这个顺序写：
 
@@ -315,6 +356,48 @@ KM.page({
       把这六步和其他三个机器周期摆在一起看会更清楚：
       ==中断周期是四个周期里唯一一个"写"主存的==，
       见[四个机器周期的数据流](#/co/cpu/datapath?at=int-flow)。
+    ` },
+
+    /* ================================================================== */
+    { t: 'diagram', id: 'cost-bar', title: '★ 一次中断的时间，到底花在哪一段',
+      note: '琥珀 = 硬件的固定开销，绿 = 软件的可变开销',
+      caption: String.raw`==两段琥珀色是可以数清的常数==（隐指令的压栈与读向量、$\texttt{IRET}$ 的弹栈，每次访存一个总线周期）；==绿色那段才是变量==。所以优化中断开销的方向只有一个：[让中断发生得更少](#/co/io/dma?at=why)，而不是让判断更快——判断本身几乎不花时间。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 148" role="img" aria-label="一次中断的时间构成：采样判优、中断隐指令、中断服务程序、中断返回">
+  <text class="cap" x="20" y="16">时间 ——▶</text>
+  <g class="n m"><rect x="20" y="26" width="90" height="52" rx="6"/><text class="bt xs" x="65" y="44" text-anchor="middle" dominant-baseline="central">采样判优</text><text class="bs" x="65" y="62" text-anchor="middle" dominant-baseline="central">几乎不花时间</text></g>
+  <g class="n a"><rect x="112" y="26" width="158" height="52" rx="6"/><text class="bt xs" x="191" y="44" text-anchor="middle" dominant-baseline="central">中断隐指令</text><text class="bs" x="191" y="62" text-anchor="middle" dominant-baseline="central">3~5 个总线周期</text></g>
+  <g class="n g"><rect x="272" y="26" width="296" height="52" rx="6"/><text class="bt xs" x="420" y="44" text-anchor="middle" dominant-baseline="central">中断服务程序 ISR</text><text class="bs" x="420" y="62" text-anchor="middle" dominant-baseline="central">长度不定，通常是大头</text></g>
+  <g class="n a"><rect x="570" y="26" width="110" height="52" rx="6"/><text class="bt xs" x="625" y="44" text-anchor="middle" dominant-baseline="central">IRET</text><text class="bs" x="625" y="62" text-anchor="middle" dominant-baseline="central">2~3 个总线周期</text></g>
+  <path class="sep" d="M20,92 H680"/>
+  <text class="lb" x="20" y="112">硬件那两段的成本几乎全是【访存】：压 PC、压 PSW、读中断向量、弹栈</text>
+  <text class="lb" x="20" y="132">所以中断贵不贵，取决于要来回搬多少个字，而不是取决于判断有多快</text>
+</svg>
+` },
+
+    { t: 'key', id: 'cost-breakdown', title: '★ 把一次中断的开销拆开，每一项都对应一个考点', c: String.raw`
+      | 阶段 | 时间花在什么上 | 量级 |
+      |---|---|---|
+      | 末拍采样 + 判优 | 纯组合逻辑，和一次普通译码差不多 | ==可以忽略== |
+      | **中断隐指令** | ==访存==：压 PC、压 PSW、读中断向量 | 每次访存一个总线周期，共 $3\sim5$ 个 |
+      | 保护现场 | ==访存==：把用到的寄存器逐个压栈 | ==压得越多越贵== |
+      | 设备服务 | 真正干活的那几条指令 | 视设备而定 |
+      | 恢复现场 + $\texttt{IRET}$ | ==访存==：逐个弹栈，再弹 PSW 和 PC | $2\sim3$ 个总线周期起 |
+
+      ==一条主线：中断的开销几乎全是访存，而不是"判断"。==
+      这一条能串起三处结论：
+
+      1. **为什么要有 DMA** —— 它减少的是[中断的次数](#/co/io/dma?at=why)，
+         而每次中断那几百个周期是省不掉的；
+      2. **为什么[流水线让中断更贵](#/co/cpu/exception?at=pipeline-cost)** ——
+         多出来的不是判断时间，是==要保存 / 作废的状态变多了==；
+      3. **为什么[计算题里"一次中断 500 个时钟周期"](#/co/io/interrupt?at=cost-calc)听起来离谱但很真实** ——
+         几十次访存 + 几十条指令，$500$ 个周期一点都不夸张。
+
+      ==别把"中断响应快"理解成"中断便宜"==：
+      响应快说的是**延迟小**（能很快开始处理），
+      开销大说的是**吞吐低**（每次处理都要交一大笔固定成本）。
+      这两件事在实时系统里经常打架。
     ` },
 
     /* ================================================================== */

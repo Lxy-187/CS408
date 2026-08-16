@@ -63,6 +63,53 @@ KM.page({
 ` },
 
     /* ================================================================== */
+    { t: 'diagram', id: 'block-device', title: '★ 磁盘为什么不能像主存那样"给我第 X 个字节"',
+      note: '块设备的最小传送单位是一个扇区，不是一个字节',
+      caption: String.raw`==这张图解释的是"传送单位"从哪来的==：不是软件挑的，是设备定的。磁盘的最小可寻址单位是**扇区**（传统 $512\ \text{B}$，现代 $4\ \text{KB}$），因为盘面上的数据是==连着记、按扇区带 ECC 校验==的——想读 1 个字节，硬件也得把整扇区读进[控制器的缓存](#/co/io/io-mode?at=ctrl-cache)再校验一遍。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 240" role="img" aria-label="主存按字节寻址，磁盘只能整扇区传送，按字节中断会产生五百多次中断">
+  <text class="cap" x="20" y="14">① 主存：按字节寻址</text>
+  <g class="n k"><rect x="20" y="24" width="160" height="44" rx="7"/><text class="bt xs" x="100" y="40" text-anchor="middle" dominant-baseline="central">CPU</text><text class="bs" x="100" y="57" text-anchor="middle" dominant-baseline="central">给出地址 X</text></g>
+  <path class="ar" d="M184,46 H216"/>
+  <g class="n k"><rect x="220" y="24" width="160" height="44" rx="7"/><text class="bt xs" x="300" y="40" text-anchor="middle" dominant-baseline="central">主存</text><text class="bs" x="300" y="57" text-anchor="middle" dominant-baseline="central">直接返回那一个字节</text></g>
+  <text class="lb" x="400" y="50">一次总线操作 = 1 个字节，要几个取几个</text>
+  <text class="cap" x="20" y="96">② 磁盘：块设备，没有"第 X 个字节"这种问法</text>
+  <g class="n a"><rect x="20" y="106" width="150" height="44" rx="7"/><text class="bt xs" x="95" y="122" text-anchor="middle" dominant-baseline="central">CPU</text><text class="bs" x="95" y="139" text-anchor="middle" dominant-baseline="central">请求第 N 个扇区</text></g>
+  <path class="ar" d="M174,128 H206"/>
+  <g class="n g"><rect x="210" y="106" width="180" height="44" rx="7"/><text class="bt xs" x="300" y="122" text-anchor="middle" dominant-baseline="central">磁盘控制器</text><text class="bs" x="300" y="139" text-anchor="middle" dominant-baseline="central">整扇区读进本地缓存</text></g>
+  <path class="ar" d="M394,128 H426"/>
+  <g class="n p"><rect x="430" y="106" width="150" height="44" rx="7"/><text class="bt xs" x="505" y="122" text-anchor="middle" dominant-baseline="central">DMA 控制器</text><text class="bs" x="505" y="139" text-anchor="middle" dominant-baseline="central">整块搬，只中断 1 次</text></g>
+  <path class="ar" d="M584,128 H616"/>
+  <g class="n k"><rect x="620" y="106" width="60" height="44" rx="7"/><text class="bt xs" x="650" y="128" text-anchor="middle" dominant-baseline="central">主存</text></g>
+  <text class="lb em" x="366" y="170">假如没有 DMA，改用中断逐字节搬</text>
+  <path class="ar em" d="M300,150 V176"/>
+  <g class="n r"><rect x="20" y="180" width="660" height="52" rx="7"/><text class="bt sm" x="350" y="198" text-anchor="middle" dominant-baseline="central">一个扇区 512 B = 512 次中断</text><text class="bs" x="350" y="218" text-anchor="middle" dominant-baseline="central">每次中断的保存 / 恢复现场开销，都远大于它搬的那 1 个字节</text></g>
+</svg>
+` },
+
+    { t: 'key', id: 'block-vs-char', title: '★ 所以设备分两类，I/O 方式也就跟着分两类', c: String.raw`
+      | | **字符设备** | **块设备** |
+      |---|---|---|
+      | 典型 | 键盘、鼠标、串口、打印机 | 磁盘、光盘、SSD、磁带 |
+      | 最小传送单位 | ==一个字符 / 字节== | ==一个块（扇区）== |
+      | 数据来得快吗 | 慢而零散（人在敲键盘） | 一来就是一大批 |
+      | 适合的方式 | ==程序中断== | ==DMA== |
+      | 理由 | 总共没几个字节，中断开销无所谓 | ==逐字节中断会把 CPU 淹死== |
+
+      ==DMA 对块设备不是"优化"，是结构性的必需==。
+      上面那张图里 $512$ 次中断的账，随便算一下就知道有多离谱：
+      按[那道计算题](#/co/io/interrupt?at=cost-calc)的 $500$ 周期/次算，
+
+      $$512 \times 500 = 2.56\times10^{5}\ \text{个时钟周期}\ \ \text{只为搬一个扇区}$$
+
+      而同样一个扇区走 DMA，==只在传完时中断一次==，
+      中间那 $512$ 个字节 CPU 一个也没碰。
+
+      **这也是"传送单位"这个词在两章里的呼应**：
+      [接口的缓冲寄存器按字计、控制器的缓存按块计](#/co/io/io-mode?at=ctrl-cache)——
+      ==硬件缓存有多大，就决定了这台机器该用哪种 I/O 方式。==
+    ` },
+
     { t: 'h', id: 'controller', c: '二、DMA 控制器的组成' },
 
     { t: 'diagram', id: 'dmac-struct', title: '★ 六个部件，每个都对应一个考点',

@@ -9,7 +9,7 @@ KM.page({
   title: '程序查询 / 中断 / DMA 三种方式',
   subtitle: '五种 I/O 方式其实是**同一条轴上的五个刻度**：CPU 每传多少数据才被打扰一次',
   tags: ['高频', '必考', '概念辨析', '手算'],
-  updated: '2026-08-14',
+  updated: '2026-08-16',
 
   blocks: [
 
@@ -74,7 +74,84 @@ KM.page({
     ` },
 
     /* ================================================================== */
-    { t: 'h', id: 'port-addressing', c: '二、I/O 端口的两种编址方式' },
+    { t: 'h', id: 'three-layers', c: '二、外设 · 设备控制器 · I/O 接口：三个词是不是一回事' },
+
+    { t: 'key', id: 'name-confusion', title: '教材把后两个当同义词，但真机器里是上下两层', c: String.raw`
+      408 的题目里，==「I/O 接口」和「设备控制器」按同义词处理不会错==——
+      考的都是"三类寄存器怎么读写、端口怎么编址"。
+      但真实的机器里，主机和外设之间是**三层**：
+
+      | 层 | 由谁实现 | 对上面暴露什么 |
+      |---|---|---|
+      | **外设本体** | 机械 / 电磁 / 光电的物理动作 | 一堆模拟量，各按各的时序 |
+      | **设备控制器** | ==设备厂商==的专用芯片 + 固件 | 整理好的、==成块的==字节流 |
+      | **I/O 接口** | ==主机侧==认的那组寄存器 | [数据 / 状态 / 控制三类端口](#/co/io/io-mode?at=interface-struct) |
+
+      分清这三层，能解释掉两件教材没明说的事：
+
+      1. **磁盘凭什么一次交出一整个扇区** —— 因为控制器里有==自己的一块缓存==，
+         容量比接口那个数据缓冲寄存器大几个数量级；
+      2. **CPU 凭什么不必管对面是机械盘还是固态盘** ——
+         因为差异==全被控制器的固件吃掉了==，露给主机的那一层长得一模一样。
+    ` },
+
+    { t: 'diagram', id: 'three-stack', title: '从物理动作到 CPU 寄存器，中间垫了几层',
+      note: '每往上一层，时间尺度就缩短约 1000 倍',
+      caption: String.raw`==这张图真正想说的是右边那一列==：外设是 $\text{ms}$ 级，总线是 $\text{ns}$ 级，中间差了 $10^{6}$。中间这两层的全部工作，就是==把慢而杂的东西攒成快而齐的东西==。所以[接口的第一功能是数据缓冲](#/co/io/io-mode?at=interface-func)，不是别的。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 306" role="img" aria-label="外设本体、设备控制器、IO 接口、系统总线到 CPU 与主存的分层结构">
+  <g class="n a"><rect x="170" y="14" width="360" height="40" rx="7"/><text class="bt sm" x="350" y="34" text-anchor="middle" dominant-baseline="central">外设本体（盘片 / 键帽 / 光电器件）</text></g>
+  <text class="lb em" x="546" y="34">毫秒级：物理动作</text>
+  <path class="ar" d="M350,54 V70"/>
+  <g class="n g"><rect x="170" y="74" width="360" height="52" rx="7"/><text class="bt sm" x="350" y="92" text-anchor="middle" dominant-baseline="central">设备控制器（厂商的专用芯片）</text><text class="bs" x="350" y="112" text-anchor="middle" dominant-baseline="central">固件 + 纠错 + 一块自己的缓存</text></g>
+  <text class="lb" x="546" y="100">微秒级：整块处理</text>
+  <path class="ar" d="M350,126 V142"/>
+  <g class="n k"><rect x="170" y="146" width="360" height="52" rx="7"/><text class="bt sm" x="350" y="164" text-anchor="middle" dominant-baseline="central">I/O 接口（主机唯一看得见的一层）</text><text class="bs" x="350" y="184" text-anchor="middle" dominant-baseline="central">数据缓冲 / 状态 / 控制 三类寄存器</text></g>
+  <text class="lb k" x="546" y="172">纳秒级：一次一个字</text>
+  <path class="ar" d="M350,198 V214"/>
+  <g class="n m"><rect x="20" y="218" width="660" height="32" rx="7"/><text class="bt sm" x="350" y="234" text-anchor="middle" dominant-baseline="central">系统总线（地址线 / 数据线 / 控制线）</text></g>
+  <path class="ar" d="M200,250 V266"/>
+  <path class="ar" d="M500,250 V266"/>
+  <g class="n p"><rect x="110" y="270" width="180" height="30" rx="7"/><text class="bt sm" x="200" y="285" text-anchor="middle" dominant-baseline="central">CPU</text></g>
+  <g class="n p"><rect x="410" y="270" width="180" height="30" rx="7"/><text class="bt sm" x="500" y="285" text-anchor="middle" dominant-baseline="central">主存</text></g>
+</svg>
+` },
+
+    { t: 'diagram', id: 'ctrl-inside', title: '设备控制器内部：主机同样看不见',
+      note: '408 不考这一层，但它解释了很多"为什么"',
+      caption: String.raw`中间那块紫色的==本地缓存==是这张图的重点：接口的数据缓冲寄存器只装==一个字==，控制器的缓存却能装==整块甚至整轨==。[磁盘为什么只能整扇区读写](#/co/io/dma?at=block-device)这类问题，根子都在这块缓存上。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 232" role="img" aria-label="设备控制器内部的固件、纠错、本地缓存、伺服与命令队列">
+  <g class="n a"><rect x="4" y="94" width="110" height="44" rx="7"/><text class="bt xs" x="59" y="110" text-anchor="middle" dominant-baseline="central">外设本体</text><text class="bs" x="59" y="126" text-anchor="middle" dominant-baseline="central">原始物理信号</text></g>
+  <path class="ar" d="M116,116 H128"/>
+  <g class="n g"><rect x="132" y="10" width="436" height="212" rx="8"/></g>
+  <text class="cap" x="350" y="30" text-anchor="middle">设备控制器（内部）</text>
+  <g class="n a"><rect x="148" y="42" width="196" height="40" rx="6"/><text class="bt xs" x="246" y="57" text-anchor="middle" dominant-baseline="central">固件 / 微处理器</text><text class="bs" x="246" y="73" text-anchor="middle" dominant-baseline="central">调度与逻辑控制</text></g>
+  <g class="n a"><rect x="356" y="42" width="196" height="40" rx="6"/><text class="bt xs" x="454" y="57" text-anchor="middle" dominant-baseline="central">信号处理 / 纠错</text><text class="bs" x="454" y="73" text-anchor="middle" dominant-baseline="central">ECC、调制解调</text></g>
+  <g class="n p"><rect x="148" y="90" width="404" height="48" rx="6"/><text class="bt sm" x="350" y="107" text-anchor="middle" dominant-baseline="central">本地缓存 / 数据缓冲区</text><text class="bs" x="350" y="126" text-anchor="middle" dominant-baseline="central">几 KB 到几百 MB，比接口的数据缓冲寄存器大几个数量级</text></g>
+  <g class="n a"><rect x="148" y="150" width="196" height="40" rx="6"/><text class="bt xs" x="246" y="165" text-anchor="middle" dominant-baseline="central">伺服 / 定位控制</text><text class="bs" x="246" y="181" text-anchor="middle" dominant-baseline="central">寻道、走纸</text></g>
+  <g class="n a"><rect x="356" y="150" width="196" height="40" rx="6"/><text class="bt xs" x="454" y="165" text-anchor="middle" dominant-baseline="central">命令队列</text><text class="bs" x="454" y="181" text-anchor="middle" dominant-baseline="central">请求排队与重排序</text></g>
+  <text class="lb" x="350" y="210" text-anchor="middle">对主机只暴露标准化的寄存器接口，内部实现完全不可见</text>
+  <path class="ar" d="M568,116 H584"/>
+  <g class="n k"><rect x="588" y="94" width="108" height="44" rx="7"/><text class="bt xs" x="642" y="110" text-anchor="middle" dominant-baseline="central">I/O 接口</text><text class="bs" x="642" y="126" text-anchor="middle" dominant-baseline="central">三类标准寄存器</text></g>
+</svg>
+` },
+
+    { t: 'key', id: 'ctrl-cache', title: '★ 这一层缓存决定了后面两节的走向', c: String.raw`
+      记住一句话就够了：==接口的缓冲寄存器按"字"计，控制器的缓存按"块"计==。
+
+      | | 装得下多少 | 于是决定了 |
+      |---|---|---|
+      | 接口的 **DBR** | ==一个字节 / 一个字== | 每传一个字就得打扰 CPU 一次 → [中断方式](#/co/io/interrupt?at=timeline) |
+      | 控制器的 **本地缓存** | ==一整块（扇区 / 页 / 帧）== | 攒够一大批再打扰一次 → [DMA 方式](#/co/io/dma?at=why) |
+
+      ==所以"一次传送多少"不是软件挑的，是那层缓存的大小定的。==
+      这条线一直贯穿到[五种 I/O 方式的排列](#/co/io/io-mode?at=spectrum)：
+      整条轴量的就是==每被打扰一次，能换来多少数据==。
+    ` },
+
+    /* ================================================================== */
+    { t: 'h', id: 'port-addressing', c: '三、I/O 端口的两种编址方式' },
 
     { t: 'compare', id: 'addressing-table', title: '★★ 统一编址 vs 独立编址',
       cols: ['', '统一编址（存储器映射 / MMIO）', '独立编址（I/O 映射）'],
@@ -112,7 +189,7 @@ KM.page({
     ` },
 
     /* ================================================================== */
-    { t: 'h', id: 'spectrum', c: '三、五种 I/O 方式：同一条轴上的五个刻度' },
+    { t: 'h', id: 'spectrum', c: '四、五种 I/O 方式：同一条轴上的五个刻度' },
 
     { t: 'diagram', id: 'the-axis', title: '★★ 把五种方式排成一条线（这张图是本章的骨架）',
       note: '从左到右：CPU 越来越闲，硬件越来越贵',
@@ -177,7 +254,7 @@ KM.page({
     ` },
 
     /* ================================================================== */
-    { t: 'h', id: 'polling', c: '四、程序查询方式' },
+    { t: 'h', id: 'polling', c: '五、程序查询方式' },
 
     { t: 'diagram', id: 'polling-flow', title: '程序查询的流程：一个死循环',
       note: '左边那条回边就是 CPU 的时间被吃掉的地方',
@@ -230,7 +307,7 @@ KM.page({
     ` },
 
     /* ================================================================== */
-    { t: 'h', id: 'compare', c: '五、三种方式的全面对比' },
+    { t: 'h', id: 'compare', c: '六、三种方式的全面对比' },
 
     { t: 'compare', id: 'three-way', title: '★★ 程序查询 / 程序中断 / DMA',
       cols: ['', '程序查询', '程序中断', 'DMA'],
@@ -345,7 +422,7 @@ KM.page({
     },
 
     /* ================================================================== */
-    { t: 'h', id: 'channel', c: '六、通道方式（考纲要求，但只考概念）' },
+    { t: 'h', id: 'channel', c: '七、通道方式（考纲要求，但只考概念）' },
 
     { t: 'key', id: 'channel-def', title: '通道 = 能执行程序的 DMA', c: String.raw`
       DMA 控制器只会做一件事：==把一块连续的数据从 A 搬到 B==。
@@ -396,7 +473,7 @@ KM.page({
     ` },
 
     /* ================================================================== */
-    { t: 'h', id: 'modern', c: '七、略高于考纲：轮询的回归' },
+    { t: 'h', id: 'modern', c: '八、略高于考纲：轮询的回归' },
 
     { t: 'key', id: 'polling-returns', title: '当设备快到一定程度，中断反而成了累赘', c: String.raw`
       这一章的主线是"从查询走向中断再走向 DMA"，
@@ -447,7 +524,7 @@ KM.page({
     ` },
 
     /* ================================================================== */
-    { t: 'h', id: 'pitfalls', c: '八、易错清单' },
+    { t: 'h', id: 'pitfalls', c: '九、易错清单' },
 
     { t: 'warn', id: 'pitfall-list', title: '这一节的固定失分点', c: String.raw`
       1. **说 DMA 方式下数据要经过 CPU** —— ==不经过==，

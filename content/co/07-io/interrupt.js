@@ -10,7 +10,7 @@ KM.page({
   title: '中断响应与处理流程',
   subtitle: '请求 → 判优 → 响应 → 处理 → 返回。**屏蔽字**和**两种优先级**是这一节全部难点的来源',
   tags: ['高频', '必考', '综合应用', '手算'],
-  updated: '2026-08-14',
+  updated: '2026-08-16',
 
   blocks: [
 
@@ -109,6 +109,47 @@ KM.page({
     /* ================================================================== */
     { t: 'h', id: 'arbitration', c: '三、判优：谁先被响应' },
 
+    { t: 'diagram', id: 'int-boundary', title: '★ 判优这件事，到底发生在 CPU 里还是 CPU 外',
+      note: '一条中断请求线的两端，各站着什么部件',
+      caption: String.raw`==横在中间的三根线才是主机与外设的真正分界==：$\texttt{INTR}$ 和 $\texttt{INTA}$ 是**控制线**，中断类型号走的是**数据线**。左边那一块可以整个做成一片独立芯片（中断控制器），它是[一台自己会判优的控制器](#/co/cpu/multi-ctrl?at=named-controller)，不归 CU 逐拍指挥。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 200" role="img" aria-label="接口一侧的请求触发器与排队器，CPU 一侧的中断允许触发器与响应逻辑，中间由三根线连接">
+  <g class="n g"><rect x="14" y="16" width="250" height="170" rx="8"/></g>
+  <text class="cap" x="26" y="36">接口 / 中断控制器一侧</text>
+  <g class="n a"><rect x="26" y="44" width="226" height="44" rx="6"/><text class="bt xs" x="139" y="60" text-anchor="middle" dominant-baseline="central">中断请求触发器 INTR</text><text class="bs" x="139" y="77" text-anchor="middle" dominant-baseline="central">每个中断源一位</text></g>
+  <g class="n p"><rect x="26" y="100" width="226" height="44" rx="6"/><text class="bt xs" x="139" y="116" text-anchor="middle" dominant-baseline="central">屏蔽 MASK + 排队器</text><text class="bs" x="139" y="133" text-anchor="middle" dominant-baseline="central">先与屏蔽位相与，再判优</text></g>
+  <text class="lb" x="26" y="168">排队器也可以集中做在 CPU 内部</text>
+  <text class="lb" x="348" y="62" text-anchor="middle">INTR 请求线（专用控制线）</text>
+  <path class="ar" d="M264,74 H428"/>
+  <text class="lb" x="348" y="102" text-anchor="middle">INTA 应答（控制线）</text>
+  <path class="ar" d="M432,114 H268"/>
+  <text class="lb em" x="348" y="142" text-anchor="middle">中断类型号（走数据总线）</text>
+  <path class="ar em" d="M264,154 H428"/>
+  <g class="n k"><rect x="436" y="16" width="250" height="170" rx="8"/></g>
+  <text class="cap" x="448" y="36">CPU 内部（CU 管辖）</text>
+  <g class="n a"><rect x="448" y="44" width="226" height="44" rx="6"/><text class="bt xs" x="561" y="60" text-anchor="middle" dominant-baseline="central">中断允许触发器 IF</text><text class="bs" x="561" y="77" text-anchor="middle" dominant-baseline="central">PSW 里的一位，全机只有一个</text></g>
+  <g class="n p"><rect x="448" y="100" width="226" height="44" rx="6"/><text class="bt xs" x="561" y="116" text-anchor="middle" dominant-baseline="central">CU 的中断响应逻辑</text><text class="bs" x="561" y="133" text-anchor="middle" dominant-baseline="central">末拍采样，发起中断周期</text></g>
+</svg>
+` },
+
+    { t: 'key', id: 'where-lives', title: '★ 哪个部件在哪一侧（选择题就问这个）', c: String.raw`
+      | 部件 | 在哪 | 一句话 |
+      |---|---|---|
+      | 中断请求触发器 $\texttt{INTR}$ | ==接口里==，每个中断源一个 | 设备就绪时置 1 |
+      | 中断屏蔽触发器 $\texttt{MASK}$ | ==接口里==，每个中断源一个 | 拼起来就是[屏蔽字](#/co/io/interrupt?at=mask-rule) |
+      | 排队器（判优电路） | ==两种做法都有== | 集中在 CPU 内，或分散在各接口（[链式](#/co/io/interrupt?at=daisy-chain)） |
+      | 中断允许触发器 $\texttt{IF}$ | ==只在 CPU 内==，全机唯一 | 开中断 / 关中断动的就是它 |
+      | 中断响应的时序控制 | ==只在 CPU 内==（CU） | 决定[什么时候看一眼请求线](#/co/cpu/exception?at=sample-timing) |
+
+      **两个容易记反的点：**
+
+      1. ==屏蔽是"每个源一个"，允许是"整机一个"== ——
+         所以"关中断"关掉的是全体，改屏蔽字改的是个别；
+      2. ==排队器的位置不固定==，教材两种画法都出现过。
+         题目没给电路图时==别断言"排队器一定在 CPU 里"==；
+         但只要出现"链式排队器 / 菊花链"，那就一定是==分散在各接口上==的那种。
+    ` },
+
     { t: 'compare', id: 'arb-compare', title: '硬件排队 vs 软件查询',
       cols: ['', '硬件排队器', '软件查询程序'],
       rows: [
@@ -175,6 +216,49 @@ KM.page({
 
       ==说"CPU 把向量地址送入 PC"是错的==，中间那次访存不能省。
       这是选择题里换汤不换药出过好几次的坑。
+    ` },
+
+    { t: 'diagram', id: 'bus-three-things', title: '★★ 一次中断里，总线上先后跑过四样不同的东西',
+      note: '把"请求"、"应答"、"类型号"、"数据"分到不同的线上',
+      caption: String.raw`==最容易错的是第 ③ 条==：$\texttt{INTA}$ 之后数据线上跑的是**中断类型号**（一个很小的整数），==不是外设那个数据字节==。真正的数据要等到第 ④ 步，由中断服务程序里一条普通的 $\texttt{IN}$ 指令去读——那时候已经是**软件**在搬了。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 214" role="img" aria-label="中断请求走控制线，类型号走数据线，真正的数据字节由中断服务程序读取">
+  <g class="n g"><rect x="20" y="40" width="160" height="120" rx="8"/><text class="bt sm" x="100" y="88" text-anchor="middle" dominant-baseline="central">接口 / 中断源</text><text class="bs" x="100" y="112" text-anchor="middle" dominant-baseline="central">设备侧硬件</text></g>
+  <g class="n p"><rect x="520" y="40" width="160" height="120" rx="8"/><text class="bt sm" x="600" y="88" text-anchor="middle" dominant-baseline="central">CPU</text><text class="bs" x="600" y="112" text-anchor="middle" dominant-baseline="central">CU + 寄存器</text></g>
+  <text class="lb" x="350" y="52" text-anchor="middle">① 中断请求：专用控制线 INTR</text>
+  <path class="ar" d="M184,64 H516"/>
+  <text class="lb" x="350" y="84" text-anchor="middle">② 中断应答：控制线 INTA</text>
+  <path class="ar" d="M516,96 H184"/>
+  <text class="lb em" x="350" y="116" text-anchor="middle">③ 中断类型号：数据总线（不是数据！）</text>
+  <path class="ar em" d="M184,128 H516"/>
+  <text class="cap" x="350" y="180" text-anchor="middle">—— 以上全是硬件；下面这条已经进了中断服务程序 ——</text>
+  <text class="lb em" x="350" y="200" text-anchor="middle">④ 数据字节：还是数据总线，但由 ISR 的一条 IN 指令搬</text>
+  <path class="ar em" d="M184,208 H516"/>
+</svg>
+` },
+
+    { t: 'key', id: 'who-moves-data', title: '★★ 中断机制本身，一个字节的数据都没传', c: String.raw`
+      这是整章最值得记住的一句话。把四步摊开看：
+
+      | 步 | 走哪根线 | 线上是什么 | 谁在做 |
+      |---|---|---|---|
+      | ① 请求 | ==专用控制线== $\texttt{INTR}$ | 一个电平 / 脉冲，==一位信息== | 接口（硬件） |
+      | ② 应答 | ==控制线== $\texttt{INTA}$ | 一个电平，==一位信息== | CPU（硬件） |
+      | ③ 送类型号 | ==数据总线== | ==中断类型号==（如 $\texttt{08H}$） | 接口（硬件） |
+      | ④ 传数据 | ==数据总线== | ==真正的数据字节== | ==中断服务程序（软件）== |
+
+      前三步加起来传的信息量==连一个字节都不到==，
+      它们的全部作用是==把 CPU 叫过来==；
+      数据是第 ④ 步 CPU==自己动手==搬的。
+
+      **两条推论，都是考点：**
+
+      1. ==所以"程序中断方式下 CPU 不参与数据传送"是错的==——
+         CPU 不但参与，==每个字节都是它亲手搬的==，
+         中断省掉的只是"等"，没省掉"搬"；
+      2. ==所以 DMA 才有存在的必要==——
+         [DMA 动的是第 ④ 步](#/co/io/dma?at=why)：让数据不再经过 CPU，
+         而 ①②③ 这套"叫人"的机制，==DMA 一样要用==（整块传完时还得中断一次）。
     ` },
 
     { t: 'diagram', id: 'vector-table', title: '中断向量表长什么样（设每项 4 字节，表基址 0）',
