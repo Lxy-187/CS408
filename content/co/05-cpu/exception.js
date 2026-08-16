@@ -213,16 +213,20 @@ KM.page({
 </svg>
 ` },
 
+    { t: 'insight', id: 'my-tick-question', title: '★ 我想问到底的一件事', c: String.raw`
+      CU 的中断查询逻辑，==具体是在哪个时钟节拍==完成 $\texttt{INTR}$ 和 $\texttt{IF}$ 的与运算的？
+    ` },
+
     { t: 'diagram', id: 'sample-timing', title: '★ 细到时钟周期：请求是在哪一拍被"拍下来"的',
       note: '采样在末拍，判断在下一个机器周期的入口',
-      caption: String.raw`==采样和判断不在同一拍==：末拍先把 $\texttt{INTR}\cdot\texttt{IF}$ 的结果锁进一个触发器（**中断查询触发器**），下一个机器周期一开始才读这个锁存值决定去哪。所以"当前指令执行完才响应"这句话，在硬件上的落点就是==这一个边沿==。`,
+      caption: String.raw`==采样和判断不在同一拍==：末拍先把 $\texttt{INTR}\cdot\texttt{IF}$ 的结果锁进一个触发器（**中断查询触发器**），下一个机器周期一开始才读这个锁存值决定去哪。所以"当前指令执行完才响应"这句话，在硬件上的落点就是==这一个边沿==。这里的"末拍"指的是==整条指令的最后一个机器周期的最后一个 T 状态==，**不是某个中间机器周期的末尾**——指令要走几个机器周期，查询点就往后推几个。`,
       svg: String.raw`
 <svg class="dg" viewBox="0 0 700 232" role="img" aria-label="末拍锁存中断请求，下一个机器周期入口判断走取指周期还是中断周期">
   <g class="n m"><rect x="20" y="16" width="200" height="44" rx="7"/><text class="bt xs" x="120" y="33" text-anchor="middle" dominant-baseline="central">T1</text><text class="bs" x="120" y="50" text-anchor="middle" dominant-baseline="central">执行本条指令的微操作</text></g>
   <path class="ar" d="M224,38 H246"/>
   <g class="n m"><rect x="250" y="16" width="200" height="44" rx="7"/><text class="bt xs" x="350" y="33" text-anchor="middle" dominant-baseline="central">T2 … Tn-1</text><text class="bs" x="350" y="50" text-anchor="middle" dominant-baseline="central">该访存的访存，该运算的运算</text></g>
   <path class="ar" d="M454,38 H476"/>
-  <g class="n a"><rect x="480" y="16" width="200" height="44" rx="7"/><text class="bt xs" x="580" y="33" text-anchor="middle" dominant-baseline="central">Tlast（末拍）</text><text class="bs" x="580" y="50" text-anchor="middle" dominant-baseline="central">请求信号在此边沿被锁存</text></g>
+  <g class="n a"><rect x="480" y="16" width="200" height="44" rx="7"/><text class="bt xs" x="580" y="33" text-anchor="middle" dominant-baseline="central">Tlast（这条指令的最后一拍）</text><text class="bs" x="580" y="50" text-anchor="middle" dominant-baseline="central">请求信号在此边沿被锁存</text></g>
   <path class="ar" d="M580,60 V76 H350 V86"/>
   <g class="n k"><rect x="230" y="90" width="240" height="46" rx="7"/><text class="bt xs" x="350" y="107" text-anchor="middle" dominant-baseline="central">下一个机器周期的入口判断</text><text class="bs" x="350" y="124" text-anchor="middle" dominant-baseline="central">读锁存值，决定走哪条路</text></g>
   <text class="lb" x="250" y="150" text-anchor="middle">锁存值为 0</text>
@@ -252,6 +256,16 @@ KM.page({
         这正是[中断响应时间](#/co/io/interrupt?at=time-def)里"当前指令剩余执行时间"那一项的来源；
       - ==没有请求时 INT 周期直接被跳过==，因为锁存值就是 0，
         所以"每条指令都要经过中断周期"是错的。
+
+      **两点补充：**
+
+      - **NMI 少了一个输入，但采样点一样。** 不可屏蔽中断==不参与和 $	exttt{IF}$ 的与运算==
+        （关中断关不掉它，见[这一块](#/co/cpu/exception?at=mask-exception)），
+        但它==依然要等到同一个采样点==才生效——否则一样会破坏指令的原子性。
+        可以把它看成一个==单输入的边沿锁存器==。
+      - **流水线 CPU 里这个点换了名字。** 采样点从"单条指令的最后一拍"
+        变成了==指令的提交 / 退休边界==（见[精确异常](#/co/cpu/exception?at=precise-def)），
+        ==但规则一个字没变==：必须在一个原子操作彻底完成、结果已提交的点上锁存。
     ` },
 
     { t: 'key', id: 'why-instruction-end', title: '★ 为什么必须等指令执行完', c: String.raw`
@@ -359,6 +373,34 @@ KM.page({
     ` },
 
     /* ================================================================== */
+    { t: 'insight', id: 'my-framing', title: '★ 我想用来装下中断的那个框架', c: String.raw`
+      怎样==把中断放到"总线 + CU"这个大框架下==讨论？
+      中断信号是如何影响 CU 的控制流程的？
+      中断响应和中断处理消耗的时间，==到底花在哪里==？
+    ` },
+
+    { t: 'key', id: 'cu-branch', title: '★ 一句话回答：中断就是 CU 状态图上多开的一条分支', c: String.raw`
+      ==没有引入任何新的时间机制。== CU 的基本状态转移本来是
+
+      $$\text{取指} \to \text{译码} \to \text{执行} \to \boxed{\text{中断查询点}} \to \text{回到取指}$$
+
+      中断做的事，只是==在查询点上多长出一条边==：
+
+      | CU 的实现方式 | 中断在里面长什么样 |
+      |---|---|
+      | **硬布线** | [状态转移图](#/co/cpu/fsm?at=fsm-topology)上多几个状态，转移条件多了 $\texttt{INTR}\cdot\texttt{IF}$ 这一路 |
+      | **微程序** | 控存里多一段==用户不可见的微程序==，靠微指令的下地址字段做分支 |
+
+      两种实现==概念上完全等价==：都是"CU 自动插入执行的一条[隐指令](#/co/cpu/exception?at=hidden-def)"，
+      和普通指令一样，==由 CU 发出一串控制信号去驱动总线==。
+
+      **于是时间问题也就有了答案**：这条分支里的每一步，
+      走的还是[那套同步总线时序](#/co/bus/bus-timing?at=sync-async)——
+      发控制信号 → 驱动总线 → 等若干时钟 → 采样数据线。
+      所以"中断要花多久"这个问题，
+      ==等价于"CU 这次比平时多做了几次总线读写"==。
+    ` },
+
     { t: 'diagram', id: 'cost-bar', title: '★ 一次中断的时间，到底花在哪一段',
       note: '琥珀 = 硬件的固定开销，绿 = 软件的可变开销',
       caption: String.raw`==两段琥珀色是可以数清的常数==（隐指令的压栈与读向量、$\texttt{IRET}$ 的弹栈，每次访存一个总线周期）；==绿色那段才是变量==。所以优化中断开销的方向只有一个：[让中断发生得更少](#/co/io/dma?at=why)，而不是让判断更快——判断本身几乎不花时间。`,
