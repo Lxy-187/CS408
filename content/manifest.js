@@ -134,7 +134,8 @@ KM.tree([
         topics: [
           { id: 'hierarchy',    title: '存储层次与局部性原理' },
           { id: 'main-memory',  title: '主存与 CPU 的连接、多体交叉' },
-          { id: 'cache',        title: 'Cache：映射方式与替换算法' },
+          { id: 'cache',        title: 'Cache：映射方式与替换算法',
+            file: 'content/co/03-memory/cache.js' },
           { id: 'cache-write',  title: 'Cache 写策略与命中率计算',
             file: 'content/co/03-memory/cache-write.js' },
           { id: 'virtual',      title: '虚拟存储器与 TLB' },
