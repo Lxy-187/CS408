@@ -384,6 +384,19 @@ KM.tree([
         ],
       },
       {
+        id: 'ds', title: '数据结构',
+        topics: [
+          { id: 'intro', title: '绪论与存储结构',
+            file: 'content/review/ds-intro.js' },
+          { id: 'list', title: '线性表',
+            file: 'content/review/ds-list.js' },
+          { id: 'graph', title: '图',
+            file: 'content/review/ds-graph.js' },
+          { id: 'search-sort', title: '查找与排序',
+            file: 'content/review/ds-search-sort.js' },
+        ],
+      },
+      {
         id: 'co', title: '组成原理',
         topics: [
           { id: 'data', title: '数据的表示和运算',

@@ -331,6 +331,151 @@ KM.page({
       `,
     },
 
+    { t: 'example', id: 'ex-upper-tri-aoe',
+      title: '★★ 从压缩存储的一维数组还原 AOE 网并求关键路径',
+      source: '统考真题',
+      level: 4,
+      problem: String.raw`
+        已知有 6 个顶点（顶点编号为 $0\sim 5$）的有向带权图 $G$，
+        其邻接矩阵 $A$ 为**上三角矩阵**，==按行为主序（行优先）==保存在一维数组中：
+
+        $$[\,4,\ 6,\ \infty,\ \infty,\ \infty,\ 5,\ \infty,\ \infty,\ \infty,\ 4,\ 3,\ \infty,\ \infty,\ 3,\ 3\,]$$
+
+        要求：
+        (1) 写出图 $G$ 的邻接矩阵 $A$；
+        (2) 画出有向带权图 $G$；
+        (3) 求图 $G$ 的关键路径，并计算该关键路径的长度。
+      `,
+      idea: String.raw`
+        **这是一道"跨章缝合"题**：前半截考[特殊矩阵的压缩存储](#/ds/stack-queue/special-matrix?at=tri-rule)，
+        后半截考关键路径。==两截都不难，难在别在第一步就把矩阵还原错==。
+
+        还原的机械做法：==先数每一行有几个元素==。
+        $6$ 阶严格上三角（不含对角线）按行优先存放时，
+        第 $0$ 行有 $5$ 个、第 $1$ 行 $4$ 个、第 $2$ 行 $3$ 个、第 $3$ 行 $2$ 个、第 $4$ 行 $1$ 个，
+        共 $5+4+3+2+1=15$ 个 —— ==正好和数组长度对上，说明分行分对了==。
+
+        然后按 $5,4,3,2,1$ 把数组切成五段，逐段填进矩阵的对应行即可。
+
+        (3) 走[标准四步](#/ds/graph/topo?at=four-steps)：拓扑序 → 正推 $ve$ → 逆推 $vl$ → 填活动表。
+      `,
+      solution: String.raw`
+        **(1) 还原邻接矩阵**
+
+        按 $5,4,3,2,1$ 切分数组：
+
+        | 行 | 该行的元素（对应列） | 非 $\infty$ 的弧 |
+        |---|---|---|
+        | 0 | $4,\ 6,\ \infty,\ \infty,\ \infty$（列 $1\sim 5$） | $\langle 0,1\rangle=4$，$\langle 0,2\rangle=6$ |
+        | 1 | $5,\ \infty,\ \infty,\ \infty$（列 $2\sim 5$） | $\langle 1,2\rangle=5$ |
+        | 2 | $4,\ 3,\ \infty$（列 $3\sim 5$） | $\langle 2,3\rangle=4$，$\langle 2,4\rangle=3$ |
+        | 3 | $\infty,\ 3$（列 $4,5$） | $\langle 3,5\rangle=3$ |
+        | 4 | $3$（列 $5$） | $\langle 4,5\rangle=3$ |
+
+        完整的 $6\times 6$ 邻接矩阵（对角线记 $0$，无弧记 $\infty$）：
+
+        | | 0 | 1 | 2 | 3 | 4 | 5 |
+        |---|---|---|---|---|---|---|
+        | **0** | 0 | **4** | **6** | ∞ | ∞ | ∞ |
+        | **1** | ∞ | 0 | **5** | ∞ | ∞ | ∞ |
+        | **2** | ∞ | ∞ | 0 | **4** | **3** | ∞ |
+        | **3** | ∞ | ∞ | ∞ | 0 | ∞ | **3** |
+        | **4** | ∞ | ∞ | ∞ | ∞ | 0 | **3** |
+        | **5** | ∞ | ∞ | ∞ | ∞ | ∞ | 0 |
+
+        **(2)** 图 $G$ 共 $7$ 条弧，见[下方示意图](#/ds/graph/topo?at=upper-tri-graph)。
+        ==它是一个有向无环图，且只有一个源点 $0$、一个汇点 $5$==，符合 AOE 网的要求。
+
+        **(3) 求关键路径**
+
+        拓扑序列：$0,\ 1,\ 2,\ 3,\ 4,\ 5$。
+
+        **正推 $ve$**：
+        $$ve(0)=0,\quad ve(1)=4,\quad ve(2)=\max\{0+6,\ 4+5\}=\boxed{9}$$
+        $$ve(3)=9+4=13,\quad ve(4)=9+3=12,\quad ve(5)=\max\{13+3,\ 12+3\}=\boxed{16}$$
+
+        **逆推 $vl$**（从 $vl(5)=ve(5)=16$ 开始）：
+        $$vl(4)=16-3=13,\quad vl(3)=16-3=13$$
+        $$vl(2)=\min\{vl(3)-4,\ vl(4)-3\}=\min\{9,\ 10\}=\boxed{9}$$
+        $$vl(1)=vl(2)-5=4,\quad vl(0)=\min\{vl(1)-4,\ vl(2)-6\}=\min\{0,\ 3\}=\boxed{0}\ \checkmark$$
+
+        | 顶点 | 0 | 1 | 2 | 3 | 4 | 5 |
+        |---|---|---|---|---|---|---|
+        | $ve$ | 0 | 4 | 9 | 13 | 12 | 16 |
+        | $vl$ | 0 | 4 | 9 | 13 | **13** | 16 |
+
+        **活动表**：
+
+        | 活动 | $\langle 0,1\rangle$ | $\langle 0,2\rangle$ | $\langle 1,2\rangle$ | $\langle 2,3\rangle$ | $\langle 2,4\rangle$ | $\langle 3,5\rangle$ | $\langle 4,5\rangle$ |
+        |---|---|---|---|---|---|---|---|
+        | $e$ | 0 | 0 | 4 | 9 | 9 | 13 | 12 |
+        | $l$ | 0 | 3 | 4 | 9 | 10 | 13 | 13 |
+        | $d=l-e$ | **0** | 3 | **0** | **0** | 1 | **0** | 1 |
+
+        关键活动为 $\langle 0,1\rangle,\ \langle 1,2\rangle,\ \langle 2,3\rangle,\ \langle 3,5\rangle$。
+
+        $$\text{关键路径}:\ 0\to 1\to 2\to 3\to 5,\qquad
+        \text{长度}=4+5+4+3=\boxed{16}$$
+      `,
+      comment: String.raw`
+        **第 (1) 问的两个常见错法**：
+
+        1. ==把对角线也算进去了==。题目说"上三角矩阵"，
+           而这是一个有向无环图（没有自环），==对角线全是 0 / 不存==，
+           所以每行的元素个数是 $5,4,3,2,1$ 而不是 $6,5,4,3,2$。
+           ==数组长度 15 就是用来自检这一点的==：若按含对角线切分需要 21 个元素，对不上。
+        2. ==按列优先切分==。题目明说"行为主序"。
+
+        **想更快地定位某条弧**：$n$ 阶严格上三角按行优先存放时，
+        $\langle i,j\rangle\ (i<j)$ 的数组下标为
+        $$k=\frac{i(2n-i-1)}{2}+j-i-1$$
+        代入 $n=6$、$\langle 3,5\rangle$：$k=\frac{3\times 8}{2}+5-3-1=12+1=13$ ✓
+        （数组第 13 个元素正是 $3$。）
+        ==公式不用背，按[数前面有多少个](#/ds/stack-queue/special-matrix?at=derive-any)现推即可。==
+
+        **第 (3) 问的自检三件事**（[和前一题一样](#/ds/graph/topo?at=ex-critical)）：
+        $vl(0)=0$ ✓；每个顶点 $ve\le vl$ ✓；
+        ==四条关键活动首尾相接连成了从源点 0 到汇点 5 的完整路径== ✓
+      `,
+    },
+
+    { t: 'diagram', id: 'upper-tri-graph', title: '由一维数组还原出来的 AOE 网',
+      note: '琥珀色 = 关键路径上的弧',
+      caption: String.raw`==只有一个入度为 0 的顶点（$0$）和一个出度为 0 的顶点（$5$）==，符合 AOE 网的定义。
+      顶点 $4$ 的 $ve=12$ 而 $vl=13$，==有 1 个单位的机动时间==，因此不在关键路径上；
+      $\langle 0,2\rangle$ 虽然是一条直达弧，但 $d=3$，==也是非关键活动==。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 218" role="img" aria-label="六顶点 AOE 网，标出关键路径 0-1-2-3-5">
+  <path class="ar em" d="M86,96 L184,68"/>
+  <path class="ar" d="M88,110 H312"/>
+  <path class="ar em" d="M216,74 L314,102"/>
+  <path class="ar em" d="M346,102 L444,74"/>
+  <path class="ar" d="M346,124 L444,156"/>
+  <path class="ar em" d="M476,74 L574,102"/>
+  <path class="ar" d="M476,156 L574,124"/>
+  <g class="n a"><rect x="52" y="92" width="36" height="36" rx="18"/><text class="bt sm" x="70" y="110" text-anchor="middle" dominant-baseline="central">0</text></g>
+  <g class="n a"><rect x="182" y="42" width="36" height="36" rx="18"/><text class="bt sm" x="200" y="60" text-anchor="middle" dominant-baseline="central">1</text></g>
+  <g class="n a"><rect x="312" y="92" width="36" height="36" rx="18"/><text class="bt sm" x="330" y="110" text-anchor="middle" dominant-baseline="central">2</text></g>
+  <g class="n a"><rect x="442" y="42" width="36" height="36" rx="18"/><text class="bt sm" x="460" y="60" text-anchor="middle" dominant-baseline="central">3</text></g>
+  <g class="n k"><rect x="442" y="152" width="36" height="36" rx="18"/><text class="bt sm" x="460" y="170" text-anchor="middle" dominant-baseline="central">4</text></g>
+  <g class="n a"><rect x="572" y="92" width="36" height="36" rx="18"/><text class="bt sm" x="590" y="110" text-anchor="middle" dominant-baseline="central">5</text></g>
+  <text class="lb em" x="126" y="72">4</text>
+  <text class="lb" x="250" y="126" text-anchor="middle">6</text>
+  <text class="lb em" x="256" y="102">5</text>
+  <text class="lb em" x="392" y="76" text-anchor="middle">4</text>
+  <text class="lb" x="380" y="146">3</text>
+  <text class="lb em" x="522" y="76" text-anchor="middle">3</text>
+  <text class="lb" x="530" y="150">3</text>
+  <text class="lb" x="70" y="146" text-anchor="middle">0/0</text>
+  <text class="lb" x="200" y="32" text-anchor="middle">4/4</text>
+  <text class="lb" x="330" y="146" text-anchor="middle">9/9</text>
+  <text class="lb" x="460" y="32" text-anchor="middle">13/13</text>
+  <text class="lb em" x="460" y="206" text-anchor="middle">12/13　有 1 的余量</text>
+  <text class="lb" x="590" y="146" text-anchor="middle">16/16</text>
+  <text class="cap" x="14" y="24">结点下方 / 上方为 ve / vl　　关键路径 0→1→2→3→5，长度 16</text>
+</svg>
+` },
+
     /* ================================================================== */
     { t: 'h', id: 'pitfalls', c: '三、易错清单' },
 

@@ -232,6 +232,106 @@ KM.page({
 </svg>
 ` },
 
+    { t: 'example', id: 'ex-nearest-neighbor',
+      title: '★ "最近邻贪心"为什么不行（贪心反例题）',
+      source: '统考真题',
+      level: 3,
+      problem: String.raw`
+        带权图（权值非负，表示边连接的两顶点间的距离）的最短路径问题，
+        是找出从初始顶点到目标顶点之间的一条最短路径。
+        假设从初始顶点到目标顶点之间存在路径，现有一种解决该问题的方法：
+
+        ① 设最短路径初始时仅包含初始顶点，令当前顶点 $u$ 为初始顶点；
+        ② 选择离 $u$ **最近**且尚未在最短路径中的一个顶点 $v$，加入到最短路径中，
+        修改当前顶点 $u=v$；
+        ③ 重复步骤 ② 直到 $u$ 是目标顶点为止。
+
+        请问上述方法能否求得最短路径？若该方法可行，请证明之；否则，请举例说明。
+      `,
+      idea: String.raw`
+        ==先看清它和 Dijkstra 差在哪==，反例就自己浮出来了。
+
+        - **Dijkstra** 每轮比的是"==从**初始顶点**到 $v$ 的整条路径长度=="；
+        - **这个方法** 每轮比的是"==从**当前顶点** $u$ 到 $v$ 的那**一条边**的权=="。
+
+        差别就在"累积"两个字上：==它把已经走过的路的代价扔掉了==。
+
+        所以构造反例的思路很直接：==让"一小步一小步"的那条路，
+        每步都比直达的边短，但加起来比直达的长==。
+        最省事的做法是让绕路的每条边都是 1、直达边取 2。
+      `,
+      solution: String.raw`
+        **结论：不可行。**
+
+        **反例**：构造图 $G=(V,E)$，
+        $V=\{S,A,B,T\}$（$S$ 为初始顶点，$T$ 为目标顶点），边与权值为
+
+        $$(S,A)=1,\qquad (A,B)=1,\qquad (B,T)=1,\qquad (S,T)=2$$
+
+        **按题设方法执行**：
+
+        | 步 | 当前顶点 $u$ | 可选的最近顶点 | 选中 | 已建路径 |
+        |---|---|---|---|---|
+        | 初始 | $S$ | $A$（距 1）、$T$（距 2） | ==$A$== | $S$ |
+        | 1 | $A$ | $B$（距 1） | $B$ | $S\to A$ |
+        | 2 | $B$ | $T$（距 1） | $T$ | $S\to A\to B$ |
+        | 3 | $T$ | 到达目标，结束 | — | $S\to A\to B\to T$ |
+
+        该方法求得的路径 $S\to A\to B\to T$，长度 $1+1+1=3$；
+        而实际最短路径是 $S\to T$，长度 $2$。
+
+        $$3>2\ \Longrightarrow\ \text{该方法未能求得最短路径，反例成立}$$
+      `,
+      comment: String.raw`
+        **这个方法有个名字**：==最近邻贪心（Nearest Neighbor Heuristic）==。
+        它失效的两个原因值得写进答案：
+
+        1. ==只顾局部最优，忽略全局==：
+           每一步只考察"与**当前顶点**直接相连的最短边"，
+           ==完全没有考虑从**初始顶点**累积到当前顶点的距离==；
+        2. ==缺乏松弛与回溯机制==：
+           顶点一旦被加入路径就不可逆地沿该方向延伸，
+           发现总代价已超过其他分支时==没有任何纠错能力==。
+           而 [Dijkstra 的松弛](#/ds/graph/shortest?at=dijkstra-idea)恰恰就是这个纠错机制 ——
+           $\texttt{dist[v]}$ 会被反复下调，直到它被敲定。
+
+        **答题格式提醒**：题目说"若可行请证明，否则举例说明"，
+        ==举反例时必须把图、执行过程、两条路径的长度都写出来==，
+        只说一句"贪心不一定最优"是拿不到分的。
+
+        **一个容易混的地方**：这个反例==用的全是正权==，
+        所以它和[负权导致 Dijkstra 失效](#/ds/graph/shortest?at=negative-weight)是==两回事==：
+        - 本题失效是因为==比较的量选错了==（比边权而不是比路径长度）；
+        - 负权失效是因为=="敲定"这个动作的前提被破坏了==。
+      `,
+    },
+
+    { t: 'diagram', id: 'nn-counterexample', title: '最近邻贪心的反例',
+      note: '全部为正权，仍然会出错',
+      caption: String.raw`==每一步单看都是"最近的"，加起来却不是最短的==。
+      算法在第一步就被 $(S,A)=1$ 吸引走了，因为它只比较"从当前顶点出发的边"，
+      而 $(S,T)=2$ 这条边在那一刻看起来"更远"。
+      ==Dijkstra 不会犯这个错，因为它比较的是 $\texttt{dist}$（累积长度）而不是边权==。`,
+      svg: String.raw`
+<svg class="dg" viewBox="0 0 700 204" role="img" aria-label="最近邻贪心算法的四顶点反例">
+  <path class="ar" d="M98,80 H212"/>
+  <path class="ar" d="M248,80 H362"/>
+  <path class="ar" d="M398,80 H512"/>
+  <path class="ar" d="M86,98 Q305,182 524,98"/>
+  <g class="n p"><rect x="62" y="62" width="36" height="36" rx="18"/><text class="bt sm" x="80" y="80" text-anchor="middle" dominant-baseline="central">S</text></g>
+  <g class="n r"><rect x="212" y="62" width="36" height="36" rx="18"/><text class="bt sm" x="230" y="80" text-anchor="middle" dominant-baseline="central">A</text></g>
+  <g class="n r"><rect x="362" y="62" width="36" height="36" rx="18"/><text class="bt sm" x="380" y="80" text-anchor="middle" dominant-baseline="central">B</text></g>
+  <g class="n a"><rect x="512" y="62" width="36" height="36" rx="18"/><text class="bt sm" x="530" y="80" text-anchor="middle" dominant-baseline="central">T</text></g>
+  <text class="lb" x="155" y="70" text-anchor="middle">1</text>
+  <text class="lb" x="305" y="70" text-anchor="middle">1</text>
+  <text class="lb" x="455" y="70" text-anchor="middle">1</text>
+  <text class="lb em" x="305" y="160" text-anchor="middle">2</text>
+  <text class="cap" x="14" y="26">红 = 贪心走出来的弯路　琥珀 = 目标顶点</text>
+  <g class="n r"><rect x="576" y="40" width="110" height="40" rx="7"/><text class="bt sm" x="631" y="52" text-anchor="middle" dominant-baseline="central">贪心：S-A-B-T</text><text class="bs" x="631" y="70" text-anchor="middle" dominant-baseline="central">长度 3</text></g>
+  <g class="n g"><rect x="576" y="94" width="110" height="40" rx="7"/><text class="bt sm" x="631" y="106" text-anchor="middle" dominant-baseline="central">最短：S-T</text><text class="bs" x="631" y="124" text-anchor="middle" dominant-baseline="central">长度 2</text></g>
+</svg>
+` },
+
     /* ================================================================== */
     { t: 'h', id: 'floyd', c: '三、Floyd：全源最短路（动态规划）' },
 
@@ -390,6 +490,21 @@ KM.page({
 
     /* ================================================================== */
     { t: 'h', id: 'notes', c: '五、我的思路记录' },
+
+    { t: 'insight', id: 'note-nn', title: '我构造那个反例时的想法', c: String.raw`
+      看到"每次选离 $u$ 最近的点"，我的判断是==不可行==，理由是：
+
+      > 假设起点经过两个中间点到达终点，途中路径权值均为 1，沿该路径长度为 3；
+      > 起点直接连到终点的路径权值为 2。
+      > 按题设，每次寻找距离 $u$ 最近的点，找到的是经过两个点、权值为 3 的路径，
+      > 而最短路径是权值为 2 的那条。
+
+      事后回看，==这个反例之所以一构造就成，是因为我抓住的是"累积"这两个字==：
+      只要让绕路的每一步都比直达便宜、但步数够多，贪心必然被骗。
+
+      ==记这个结论不如记这句话：Dijkstra 比的是 $\texttt{dist}$，不是边权。==
+      凡是"比边权"的贪心，在最短路径问题上都是错的。
+    ` },
 
     { t: 'insight', id: 'note-slot', title: '这里放你自己的话', c: String.raw`
       把三个算法排成一条线会更好记：
